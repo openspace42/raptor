@@ -8,7 +8,7 @@ b=`tput bold`
 set -e
 set -u
 
-basedir=/root/openspace42 # Don't change! | No trailing slash!
+basedir=/root/nikksno # Don't change! | No trailing slash!
 installdir=$basedir/ee-wp-bu # Don't change! | No trailing slash!
 backupsdir=$installdir/backups # Don't change! | No trailing slash!
 localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
@@ -65,7 +65,7 @@ touch /etc/cron.daily/ee-wp-bu
 chmod 755 /etc/cron.daily/ee-wp-bu
 echo -e '#!/bin/bash' > /etc/cron.daily/ee-wp-bu
 echo >> /etc/cron.daily/ee-wp-bu
-echo "bash /root/openspace42/ee-wp-bu/ee-wp-bu" >> /etc/cron.daily/ee-wp-bu
+echo "bash /root/nikksno/ee-wp-bu/ee-wp-bu" >> /etc/cron.daily/ee-wp-bu
 echo "${b}Finished adding backup script to daily crontab...${x}"
 echo
 

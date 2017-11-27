@@ -7,11 +7,11 @@ apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/openspace42/easyengine-wp-backup
-bash easyengine-wp-backup/install
+git clone https://github.com/nikksno/easyengine-autobackup
+bash easyengine-autobackup/install
 ```
 ```
-nano openspace42/ee-wp-bu/ee-wp-bu
+nano nikksno/ee-wp-bu/ee-wp-bu
 # [specify your backup settings]
 ```
 
