@@ -51,7 +51,7 @@ exec >  >(tee -ia $logfile)                                           # Log stdo
 if [ $interactive = "n" ]; then exec 2> >(tee -ia $logfile >&2); fi   # Log stderr to logfile if non-interactive
 echo && echo "Starting $logname script on $now..." && echo            # Write heading to logfile
 
-basedir=/root/openspace42 # Don't change! | No trailing slash!
+basedir=/root/nikksno # Don't change! | No trailing slash!
 installdir=$basedir/ee-wp-bu # Don't change! | No trailing slash!
 backupsdir=$installdir/backups # Don't change! | No trailing slash!
 localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
