@@ -44,7 +44,7 @@ echo
 mkdir -p $installdir
 if [ -f $installdir/ee-wp-bu ]
 then
-        echo "${b}Found existing version of script. Importing old settings...${x}"
+        echo "${g}${b}Found existing version of script. Importing old settings...${x}"
         echo
         now="$(date +"%Y-%m-%d_%H-%M-%S")"
         mv $installdir/ee-wp-bu $installdir/ee-wp-bu-old-$now
