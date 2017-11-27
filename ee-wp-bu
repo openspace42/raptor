@@ -100,28 +100,28 @@ do
 	if [ -d "$site" ]
 	then
 		thissite="$(echo "$site" | sed "s|${wwwdir}/||")"
-		echo "${b}Now evaluating site | $thissite | ${x}"
+		echo "${b}*] Now evaluating site | $thissite | ${x}"
 		echo
 		thissitedir="$tmpbackupdir/$thissite"
 		mkdir -p $thissitedir
 		wpconfigfile="$site/wp-config.php"
 		if [ -f $wpconfigfile ]
 		then
-			echo "${b}Proceeding with ${l}wordpress${x}${b} site backup...${x}"
+			echo "${b}  Proceeding with ${l}wordpress${x}${b} site backup...${x}"
 			echo
 			WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
 			WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
 			WPDBPASS=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
 			/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $thissitedir/mysqldump.sql
 		else
-			echo "${b}Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
+			echo "${b}  Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
 			echo
 		fi
 		if [ -d $site/htdocs/ ]
 		then
 			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
 		else
-			echo "${r}${b}No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+			echo "${r}${b}  No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
 			echo
 		fi
 		echo "${b}Finished backup for | $site |.${x}"
