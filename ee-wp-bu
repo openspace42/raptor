@@ -65,7 +65,7 @@ if [[ $EUID -ne 0 ]]
 then
 	echo "${r}${b}This script must be run as root. Run it as:${x}"
 	echo
-	echo "sudo bash $installdir/ee-wp-bu"
+	echo "${b}sudo bash $installdir/ee-wp-bu${x}"
 	echo
         # Send email indicating backup aborted
         echo "${b}Exiting...${x}"
@@ -89,7 +89,7 @@ mkdir -p $tmpbackupdir
 
 
 
-echo "Now backing up locally..."
+echo "${b}Now backing up locally...${x}"
 echo
 
 # Purge backups older than the latest 42
@@ -100,7 +100,7 @@ do
 	if [ -d "$site" ]
 	then
 		thissite="$(echo "$site" | sed "s|${wwwdir}/||")"
-		echo "${b}*] Now evaluating site | $thissite | ${x}"
+		echo "${b}*] Now evaluating site | ${g}$thissite | ${x}"
 		echo
 		thissitedir="$tmpbackupdir/$thissite"
 		mkdir -p $thissitedir
@@ -124,7 +124,7 @@ do
 			echo "${r}${b}  No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
 			echo
 		fi
-		echo "${b}Finished backup for | $site |.${x}"
+		echo "${b}Finished backup for | $thissite |.${x}"
 		echo
 	fi
 done
