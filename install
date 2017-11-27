@@ -55,8 +55,9 @@ then
         # rm /tmp/ee-wp-bu-config
         echo "${b}Finished importing old settings...${x}"
         echo
+else
+        cp easyengine-autobackup/ee-wp-bu $installdir/
 fi
-cp easyengine-autobackup/ee-wp-bu $installdir/
 echo "${b}Finished moving script into | $installdir | ${x}"
 echo
 
