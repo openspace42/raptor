@@ -18,7 +18,7 @@ nano nikksno/ee-wp-bu/ee-wp-bu
 ### Run manually
 
 ```
-bash openspace42/ee-wp-bu/ee-wp-bu
+bash nikksno/ee-wp-bu/ee-wp-bu
 ```
 
 ### Confirm automatic daily run via cron is working
