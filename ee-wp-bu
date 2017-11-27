@@ -117,7 +117,13 @@ do
 			echo "${b}Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
 			echo
 		fi
-		rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
+		if [ -d $thissitedir/htdocs/ ]
+		then
+			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
+		else
+			echo "${r}${b}No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+			echo
+		fi
 		echo "${b}Finished backup for | $site |.${x}"
 		echo
 	fi
