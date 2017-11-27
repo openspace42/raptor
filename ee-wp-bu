@@ -1,0 +1,267 @@
+#!/bin/bash
+
+################################################################################
+############################# Config section start #############################
+################################################################################
+
+adminmail="admin@example.org"
+
+### Backups password [before the first run generate one with "pwgen 42 1" and paste it here below]
+
+backupspw=""
+
+### Backup Type: [local | s3]
+
+backuptype="local"
+
+### S3 config [only if backuptype=s3]
+
+awsaki="xxx"
+awssak="xxx"
+s3endpoint="s3.amazonaws.com"
+s3bucketname="easyengine"
+
+################################################################################
+############################## Config section end ##############################
+################################################################################
+
+r=`tput setaf 1`
+g=`tput setaf 2`
+l=`tput setaf 4`
+m=`tput setaf 5`
+x=`tput sgr0`
+b=`tput bold`
+
+set -e
+set -u
+
+# All in One Bash Logger | v0.48 | 20171018 | 20171126 | Nk
+
+logname=`basename "$0"`                                               # The name of this script
+now="$(date +"%Y-%m-%d_%H-%M-%S")"                                    # The current timestamp
+logdir="$HOME/logs/$logname"                                          # Don't store anything else than logs in here!
+logfile="$logdir/$now"                                                # The new logfile
+if [[ -t 1 ]]; then interactive=y; else interactive=n; fi             # Determine if this is an interactive shell
+mkdir -p $logdir                                                      # Touch the dir
+touch $logfile                                                        # Touch the file
+if [ -f $logdir/latest-log ]; then rm $logdir/latest-log; fi          # Remove the old latest-log symlink
+ln -s $logfile $logdir/latest-log                                     # Recreate the symlink
+( cd $logdir && rm `ls -t | awk 'NR>43'` ) 2> /dev/null || true       # Delete all logs older than the newest 42
+exec >  >(tee -ia $logfile)                                           # Log stdout to logfile
+if [ $interactive = "n" ]; then exec 2> >(tee -ia $logfile >&2); fi   # Log stderr to logfile if non-interactive
+echo && echo "Starting $logname script on $now..." && echo            # Write heading to logfile
+
+basedir=/root/openspace42 # Don't change! | No trailing slash!
+installdir=$basedir/ee-wp-bu # Don't change! | No trailing slash!
+backupsdir=$installdir/backups # Don't change! | No trailing slash!
+localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
+s3backupsdir=$backupsdir/s3 # Don't change! | No trailing slash!
+restoresdir=$installdir/restores # Don't change! | No trailing slash!
+tlsdir=/etc/ssl/ee-wp-bu # Don't change! | No trailing slash!
+tmpdir=/tmp/ee-wp-bu # Don't change! | No trailing slash!
+wwwdir=/var/www/
+
+if [[ $EUID -ne 0 ]]
+then
+	echo "${r}${b}This script must be run as root. Run it as:${x}"
+	echo
+	echo "sudo bash $installdir/ee-wp-bu"
+	echo
+        # Send email indicating backup aborted
+        echo "${b}Exiting...${x}"
+        echo
+        exit
+fi
+
+
+
+if [ -d $tmpdir ]
+then
+	rm -r $tmpdir/
+fi
+
+mkdir -p $localbackupsdir
+mkdir -p $s3backupsdir
+mkdir -p $tmpdir
+backupname=EE-WP-BU-$now
+tmpbackupdir=$tmpdir/$backupname
+mkdir -p $tmpbackupdir
+
+
+
+echo "Now backing up locally..."
+echo
+
+# Purge backups older than the latest 42
+( cd $localbackupsdir && rm `ls -t | awk 'NR>42'` ) 2> /dev/null || true
+
+for site in $wwwdir/*
+do
+	if [ -d "$site" ]
+	then
+		echo "${b}Now evaluating site | $site | ${x}"
+		echo
+		# thissite="$(echo "$site" | sed "s|${wwwdir}/||")"
+		wpconfigfile="$site/wp-config.php"
+		if [ -f $wpconfigfile ]
+		then
+			echo "${b}Proceeding with ${l}wordpress${x}${b}site backup...${x}"
+			echo
+			WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
+			WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
+			WPDBPASS=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
+			echo $WPDBNAME $WPDBUSER $WPDBPASS #debug
+			echo #debug
+			thissitedir="$tmpbackupdir/$WPDBNAME"
+			mkdir -p $thissitedir
+			/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $thissitedir/mysqldump.sql
+			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
+			echo "${b}Finished backup for | $site |.${x}"
+			echo
+		else
+			echo "${b}Proceeding with ${m}NON-wordpress${x}${b}site backup...${x}"
+			echo
+			mkdir -p $thissitedir
+			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
+			echo "${b}Finished backup for | $site |.${x}"
+			echo
+		fi
+	fi
+done
+echo "${g}${b}Finished backups for all sites.${x}"
+echo
+
+
+
+echo "${b}Now compressing backup...${x}"
+echo
+
+cd $tmpdir
+tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $localbackupsdir/$backupname.tar.bz2
+echo
+
+echo
+echo "${g}${b}Finished compressing backup and stored in | $localbackupsdir/ | ${x}"
+echo
+
+
+
+if [ $backuptype = "s3" ]
+then
+
+        echo "${b}Now backing up to S3...${x}"
+
+        rsync -aAXx $tmpbackupdir/* $s3backupsdir/
+        echo
+
+        # Export some ENV variables so you don't have to type anything
+        export AWS_ACCESS_KEY_ID=$awsaki
+        export AWS_SECRET_ACCESS_KEY=$awssak
+        export PASSPHRASE=$backupspw
+
+        # Your GPG key
+        #GPG_KEY= # Insert GPG key here if using GPG
+
+        # The S3 destination followed by bucket name
+        DEST="s3://$s3endpoint/$s3bucketname/"
+
+	duplicitylogdir=/root/logs/ee-wp-bu-duplicity
+	duplicitybckplogdir=$duplicitylogdir/backup
+
+        # Set up some variables for logging
+        LOGFILE="$duplicitybckplogdir/backup.log"
+        DAILYLOGFILE="$duplicitybckplogdir/backup.daily.log"
+        FULLBACKLOGFILE="$duplicitybckplogdir/backup.full.log"
+        HOST=`hostname`
+        DATE=`date +%Y-%m-%d`
+        MAILADDR="$adminmail"
+        TODAY=$(date +%d%m%Y)
+
+        is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
+
+        if [ ! -d $duplicitybckplogdir ]
+        then
+                mkdir -p $duplicitybckplogdir
+        fi
+
+        if [ ! -f $FULLBACKLOGFILE ]
+        then
+                touch $FULLBACKLOGFILE
+        fi
+
+        if [ $is_running -eq 0 ]
+        then
+                # Clear the old daily log file
+                cat /dev/null > ${DAILYLOGFILE}
+
+                # Trace function for logging, don't change this
+                trace () {
+                        stamp=`date +%Y-%m-%d_%H:%M:%S`
+                        echo "$stamp: $*" >> ${DAILYLOGFILE}
+                }
+
+                # How long to keep backups for
+                OLDER_THAN="1M"
+
+                # The source of your backup
+                SOURCE=$s3backupsdir/ # Use / for full system backup [not the case for ee-wp-bu]
+
+                FULL=
+                tail -1 ${FULLBACKLOGFILE} | grep ${TODAY} > /dev/null || true
+                if [ $? -ne 0 -a $(date +%d) -eq 1 ]
+                then
+                        FULL=full
+                fi;
+
+                trace "Backup for local filesystem started"
+
+                trace "... removing old backups"
+
+                duplicity remove-older-than ${OLDER_THAN} ${DEST} >> ${DAILYLOGFILE} 2>&1 || true
+
+                trace "... backing up filesystem"
+
+                #    duplicity \
+                #        ${FULL} \
+                #        --encrypt-key=${GPG_KEY} \
+                #        --sign-key=${GPG_KEY} \
+                #        --include=/var/rsnap-mysql \
+                #        --include=/var/www \
+                #        --include=/etc \
+                #        --exclude=/** \
+                #        ${SOURCE} ${DEST} >> ${DAILYLOGFILE} 2>&1
+
+                duplicity ${FULL} ${SOURCE} ${DEST} # Insert --encrypt-key and --sign-key after ${FULL} if using GPG
+
+                trace "Backup for local filesystem complete"
+                trace "------------------------------------"
+
+                # Send the daily log file by email
+                #cat "$DAILYLOGFILE" | mail -s "Duplicity Backup Log for $HOST - $DATE" $MAILADDR
+                #BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep Errors | awk '{ print $2 }'`
+                BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep -i error | wc -l`
+                if [ "$BACKUPSTATUS" != "0" ]
+                then
+                        cat "$DAILYLOGFILE" | mail -aFrom:"ee-wp-bu@$HOST" -s "ERROR in ee-wp-bu backup for $HOST on $DATE" $MAILADDR
+                elif [ "$FULL" = "full" ]
+                then
+                        echo "$(date +%d%m%Y_%T) Full Back Done" >> $FULLBACKLOGFILE
+                fi
+
+                # Append the daily log file to the main log file
+                cat "$DAILYLOGFILE" >> $LOGFILE
+
+                # Reset the ENV variables. Don't need them sitting around
+                unset AWS_ACCESS_KEY_ID
+                unset AWS_SECRET_ACCESS_KEY
+                unset PASSPHRASE
+
+        fi
+
+fi
+
+rm -r $tmpbackupdir
+rm -r $tmpdir/* 2> /dev/null || true
+
+echo "${g}${b}Backup complete!${x}"
+echo

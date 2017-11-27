@@ -1,2 +1,28 @@
-# easyengine-autobackup
-Automatic offsite daily backups for all your easyengine wordpress sites
+# easyengine-wp-backup
+
+### Install on Ubuntu 16
+
+```
+apt update
+apt -y install git
+```
+```
+git clone https://github.com/openspace42/easyengine-wp-backup
+bash easyengine-wp-backup/install
+```
+```
+nano openspace42/ee-wp-bu/ee-wp-bu
+# [specify your backup settings]
+```
+
+### Run manually
+
+```
+bash openspace42/ee-wp-bu/ee-wp-bu
+```
+
+### Confirm automatic daily run via cron is working
+
+```
+cat logs/ee-wp-bu/latest-log
+```

@@ -1,0 +1,79 @@
+#!/bin/bash
+
+r=`tput setaf 1`
+g=`tput setaf 2`
+x=`tput sgr0`
+b=`tput bold`
+
+set -e
+set -u
+
+basedir=/root/openspace42 # Don't change! | No trailing slash!
+installdir=$basedir/ee-wp-bu # Don't change! | No trailing slash!
+backupsdir=$installdir/backups # Don't change! | No trailing slash!
+localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
+s3backupsdir=$backupsdir/s3 # Don't change! | No trailing slash!
+restoresdir=$installdir/restores # Don't change! | No trailing slash!
+tlsdir=/etc/ssl/ee-wp-bu # Don't change! | No trailing slash!
+tmpdir=/tmp/ee-wp-bu # Don't change! | No trailing slash!
+wwwdir=/var/www/
+
+echo
+
+echo "${b}Initiating installer...${x}"
+echo
+
+echo "${b}Now installing dependencies...${x}"
+echo
+hostname="$(cat /etc/hostname)"
+apt-add-repository ppa:duplicity-team/ppa -y
+apt-get update
+apt-get -y install duplicity python-pip pwgen pv python-boto
+pip install --upgrade pip
+pip install boto
+debconf-set-selections <<< "postfix postfix/mailname string $hostname"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+apt-get install -y mailutils
+/etc/init.d/postfix reload
+echo
+echo "${b}Finished installing dependencies.${x}"
+echo
+
+echo "${b}Now moving script into place...${x}"
+echo
+mkdir -p $installdir
+if [ -f $installdir/ee-wp-bu ]
+then
+        echo "${b}Found existing version of script. Importing old settings...${x}"
+        echo
+        now="$(date +"%Y-%m-%d_%H-%M-%S")"
+        mv $installdir/ee-wp-bu $installdir/ee-wp-bu-old-$now
+        sed -i '/############################# Config section start #############################/,/############################## Config section end ##############################/d' $installdir/ee-wp-bu
+        cat $installdir/ee-wp-bu-old-$now | awk '/############################# Config section start #############################/,/############################## Config section end ##############################/' > /tmp/ee-wp-bu-config
+        sed -i "/################################################################################/ r /tmp/ee-wp-bu-config" $installdir/ee-wp-bu
+        # rm /tmp/ee-wp-bu-config
+        echo "${b}Finished importing old settings...${x}"
+        echo
+fi
+cp easyengine-wp-backup/ee-wp-bu $installdir/
+echo "${b}Finished moving script into | $installdir | ${x}"
+echo
+
+echo "${b}Now adding backup script to daily crontab...${x}"
+echo
+touch /etc/cron.daily/ee-wp-bu
+chmod 755 /etc/cron.daily/ee-wp-bu
+echo -e '#!/bin/bash' > /etc/cron.daily/ee-wp-bu
+echo >> /etc/cron.daily/ee-wp-bu
+echo "bash /root/openspace42/ee-wp-bu/ee-wp-bu" >> /etc/cron.daily/ee-wp-bu
+echo "${b}Finished adding backup script to daily crontab...${x}"
+echo
+
+echo "${b}Now removing installer directory...${x}"
+echo
+rm -r easyengine-wp-backup
+echo "${b}Finished removing installer directory.${x}"
+echo
+
+echo "${b}Installation complete!...${x}"
+echo
