@@ -117,7 +117,7 @@ do
 			echo "${b}Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
 			echo
 		fi
-		if [ -d $thissitedir/htdocs/ ]
+		if [ -d $site/htdocs/ ]
 		then
 			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
 		else
