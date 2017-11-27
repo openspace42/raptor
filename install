@@ -48,6 +48,7 @@ then
         echo
         now="$(date +"%Y-%m-%d_%H-%M-%S")"
         mv $installdir/ee-wp-bu $installdir/ee-wp-bu-old-$now
+        cp easyengine-autobackup/ee-wp-bu $installdir/
         sed -i '/############################# Config section start #############################/,/############################## Config section end ##############################/d' $installdir/ee-wp-bu
         cat $installdir/ee-wp-bu-old-$now | awk '/############################# Config section start #############################/,/############################## Config section end ##############################/' > /tmp/ee-wp-bu-config
         sed -i "/################################################################################/ r /tmp/ee-wp-bu-config" $installdir/ee-wp-bu
