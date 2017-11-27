@@ -55,7 +55,7 @@ then
         echo "${b}Finished importing old settings...${x}"
         echo
 fi
-cp easyengine-wp-backup/ee-wp-bu $installdir/
+cp easyengine-autobackup/ee-wp-bu $installdir/
 echo "${b}Finished moving script into | $installdir | ${x}"
 echo
 
@@ -71,7 +71,7 @@ echo
 
 echo "${b}Now removing installer directory...${x}"
 echo
-rm -r easyengine-wp-backup
+rm -r easyengine-autobackup
 echo "${b}Finished removing installer directory.${x}"
 echo
 
