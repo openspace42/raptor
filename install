@@ -68,16 +68,16 @@ echo
 if [ -d $installdir ]
 then
         now="$(date +"%Y-%m-%d_%H-%M-%S")"
-        echo "${g}${b}Found existing installation. Backing up to | $installdir-old-$now | ...${x}"
+        echo "${g}${b}Found existing installation.${x}"
         echo
-        cp -r $installdir $installdir-old-$now
-        #find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
 	if [ ! -f $installdir/config ]
 	then
 		echo "${r}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
 	        echo
 		rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
 	else
+		echo "${b}Preserving old | config | file...${x}"
+		echo
         	rsync -aAXx $sourcedir/ $installdir/ --exclude=config --exclude=install --exclude=README.md
 	fi
 else
