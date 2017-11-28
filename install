@@ -72,7 +72,14 @@ then
         echo
         cp -r $installdir $installdir-old-$now
         #find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
-        rsync -aAXx $sourcedir/ $installdir/ --exclude=config --exclude=install --exclude=README.md
+	if [ ! -f $installdir/config ]
+	then
+		echo "${g}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
+	        echo
+		rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
+	else
+        	rsync -aAXx $sourcedir/ $installdir/ --exclude=config --exclude=install --exclude=README.md
+	fi
 else
         rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
 fi
