@@ -36,11 +36,11 @@ then
         exit
 fi
 
+echo
+
 ################################################################################
 
 
-
-echo
 
 echo "${b}Initiating installer...${x}"
 echo
@@ -74,7 +74,7 @@ then
         #find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
 	if [ ! -f $installdir/config ]
 	then
-		echo "${g}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
+		echo "${r}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
 	        echo
 		rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
 	else
