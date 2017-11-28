@@ -7,6 +7,7 @@ adminmail="admin@example.org"
 ### Backups password [before the first run generate one with "pwgen 42 1" and paste it here below]
 
 backupspw=""
+minbackupsnumber="7"
 
 ### Backup Type: [local | s3]
 
