@@ -56,15 +56,13 @@ if [ ! -f $installdir/config ]
 then
 	echo "${r}${b} | $installdir/config | file NOT found.${x}"
 	echo
-	echo "${b}If you've never had one, re-run the initial installation.${x}"
+	echo "${b}If you've deleted or moved yours by mistake, simply re-run the initial installation.${x}"
 	echo
 	# Send email indicating backup aborted
         echo "${b}Exiting...${x}"
         echo
         exit
 fi
-
-echo
 
 ################################################################################
 
@@ -140,7 +138,6 @@ echo
 
 cd $tmpdir
 tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $localbackupsdir/$backupname.tar.bz2
-echo
 
 echo
 echo "${g}${b}Finished compressing backup and stored in | $localbackupsdir/ | ${x}"
