@@ -71,9 +71,10 @@ then
         echo "${g}${b}Found existing installation. Backing up to | $installdir-old-$now | ...${x}"
         echo
         cp -r $installdir $installdir-old-$now
-        find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
+        #find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
+        rsync -aAXx $sourcedir/ $installdir/ --exclude=config --exclude=install --exclude=README.md
 else
-        cp -r $sourcedir $installdir
+        rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
 fi
 echo "${b}Finished installing scripts.${x}"
 echo
