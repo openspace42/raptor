@@ -1,6 +1,6 @@
 # easyengine-backup-restore
 
-### Install on Ubuntu 16
+### Install [or update / re-install] on Ubuntu 16
 
 ```
 apt update
@@ -12,7 +12,7 @@ bash easyengine-backup-restore/install
 ```
 ```
 nano nikksno/ee-br/config
-# [specify your backup settings]
+# [specify your backup settings unless previously done]
 ```
 
 ### Run backup script manually
@@ -25,4 +25,10 @@ bash nikksno/ee-br/ee-br-backup
 
 ```
 cat logs/ee-br-backup/latest-log
+```
+
+### Restore from backup [under development - not yet working]
+
+```
+bash nikksno/ee-br/ee-br-restore
 ```
