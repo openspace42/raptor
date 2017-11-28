@@ -9,13 +9,13 @@ set -e
 set -u
 
 basedir=/root/nikksno # Don't change! | No trailing slash!
-installdir=$basedir/ee-wp-bu # Don't change! | No trailing slash!
+installdir=$basedir/ee-br-backup # Don't change! | No trailing slash!
 backupsdir=$installdir/backups # Don't change! | No trailing slash!
 localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
 s3backupsdir=$backupsdir/s3 # Don't change! | No trailing slash!
 restoresdir=$installdir/restores # Don't change! | No trailing slash!
-tlsdir=/etc/ssl/ee-wp-bu # Don't change! | No trailing slash!
-tmpdir=/tmp/ee-wp-bu # Don't change! | No trailing slash!
+tlsdir=/etc/ssl/ee-br-backup # Don't change! | No trailing slash!
+tmpdir=/tmp/ee-br-backup # Don't change! | No trailing slash!
 wwwdir=/var/www/
 
 echo
@@ -42,32 +42,32 @@ echo
 echo "${b}Now moving script into place...${x}"
 echo
 mkdir -p $installdir
-if [ -f $installdir/ee-wp-bu ]
+if [ -f $installdir/ee-br-backup ]
 then
         echo "${g}${b}Found existing version of script. Importing old settings...${x}"
         echo
         now="$(date +"%Y-%m-%d_%H-%M-%S")"
-        mv $installdir/ee-wp-bu $installdir/ee-wp-bu-old-$now
-        cp easyengine-autobackup/ee-wp-bu $installdir/
-        sed -i '/############################# Config section start #############################/,/############################## Config section end ##############################/d' $installdir/ee-wp-bu
-        cat $installdir/ee-wp-bu-old-$now | awk '/############################# Config section start #############################/,/############################## Config section end ##############################/' > /tmp/ee-wp-bu-config
-        sed -i "/###############################################################################+/ r /tmp/ee-wp-bu-config" $installdir/ee-wp-bu
-        rm /tmp/ee-wp-bu-config
+        mv $installdir/ee-br-backup $installdir/ee-br-backup-old-$now
+        cp easyengine-autobackup/ee-br-backup $installdir/
+        sed -i '/############################# Config section start #############################/,/############################## Config section end ##############################/d' $installdir/ee-br-backup
+        cat $installdir/ee-br-backup-old-$now | awk '/############################# Config section start #############################/,/############################## Config section end ##############################/' > /tmp/ee-br-backup-config
+        sed -i "/###############################################################################+/ r /tmp/ee-br-backup-config" $installdir/ee-br-backup
+        rm /tmp/ee-br-backup-config
         echo "${b}Finished importing old settings...${x}"
         echo
 else
-        cp easyengine-autobackup/ee-wp-bu $installdir/
+        cp easyengine-autobackup/ee-br-backup $installdir/
 fi
 echo "${b}Finished moving script into | $installdir | ${x}"
 echo
 
 echo "${b}Now adding backup script to daily crontab...${x}"
 echo
-touch /etc/cron.daily/ee-wp-bu
-chmod 755 /etc/cron.daily/ee-wp-bu
-echo -e '#!/bin/bash' > /etc/cron.daily/ee-wp-bu
-echo >> /etc/cron.daily/ee-wp-bu
-echo "bash /root/nikksno/ee-wp-bu/ee-wp-bu" >> /etc/cron.daily/ee-wp-bu
+touch /etc/cron.daily/ee-br-backup
+chmod 755 /etc/cron.daily/ee-br-backup
+echo -e '#!/bin/bash' > /etc/cron.daily/ee-br-backup
+echo >> /etc/cron.daily/ee-br-backup
+echo "bash /root/nikksno/ee-br-backup/ee-br-backup" >> /etc/cron.daily/ee-br-backup
 echo "${b}Finished adding backup script to daily crontab...${x}"
 echo
 
