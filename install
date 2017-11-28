@@ -2,21 +2,43 @@
 
 r=`tput setaf 1`
 g=`tput setaf 2`
+l=`tput setaf 4`
+m=`tput setaf 5`
 x=`tput sgr0`
 b=`tput bold`
 
 set -e
 set -u
 
-basedir=/root/nikksno # Don't change! | No trailing slash!
-installdir=$basedir/ee-br-backup # Don't change! | No trailing slash!
-backupsdir=$installdir/backups # Don't change! | No trailing slash!
-localbackupsdir=$backupsdir/local # Don't change! | No trailing slash!
-s3backupsdir=$backupsdir/s3 # Don't change! | No trailing slash!
-restoresdir=$installdir/restores # Don't change! | No trailing slash!
-tlsdir=/etc/ssl/ee-br-backup # Don't change! | No trailing slash!
-tmpdir=/tmp/ee-br-backup # Don't change! | No trailing slash!
-wwwdir=/var/www/
+################################################################################
+
+# Don't change these! | No trailing slash!
+
+sourcedir=/root/easyengine-backup-restore
+basedir=/root/nikksno
+installdir=$basedir/ee-br
+backupsdir=$installdir/backups
+localbackupsdir=$backupsdir/local
+s3backupsdir=$backupsdir/s3
+restoresdir=$installdir/restores
+tmpdir=/tmp/ee-br
+wwwdir=/var/www
+
+if [[ $EUID -ne 0 ]]
+then
+	echo "${r}${b}This script must be run as root. Run it as:${x}"
+	echo
+	echo "${b}sudo bash $installdir/ee-br-backup${x}"
+	echo
+        # Send email indicating backup aborted
+        echo "${b}Exiting...${x}"
+        echo
+        exit
+fi
+
+################################################################################
+
+
 
 echo
 
@@ -39,27 +61,24 @@ echo
 echo "${b}Finished installing dependencies.${x}"
 echo
 
-echo "${b}Now moving script into place...${x}"
+
+
+echo "${b}Now installing scripts in | $installdir/ | ...${x}"
 echo
-mkdir -p $installdir
-if [ -f $installdir/ee-br-backup ]
+if [ -d $installdir ]
 then
-        echo "${g}${b}Found existing version of script. Importing old settings...${x}"
-        echo
         now="$(date +"%Y-%m-%d_%H-%M-%S")"
-        mv $installdir/ee-br-backup $installdir/ee-br-backup-old-$now
-        cp easyengine-autobackup/ee-br-backup $installdir/
-        sed -i '/############################# Config section start #############################/,/############################## Config section end ##############################/d' $installdir/ee-br-backup
-        cat $installdir/ee-br-backup-old-$now | awk '/############################# Config section start #############################/,/############################## Config section end ##############################/' > /tmp/ee-br-backup-config
-        sed -i "/###############################################################################+/ r /tmp/ee-br-backup-config" $installdir/ee-br-backup
-        rm /tmp/ee-br-backup-config
-        echo "${b}Finished importing old settings...${x}"
+        echo "${g}${b}Found existing installation. Backing up to | $installdir-old-$now | ...${x}"
         echo
+        cp -r $installdir $installdir-old-$now
+        find $sourcedir/ ! -name config -exec cp -t $installdir/ {} +
 else
-        cp easyengine-autobackup/ee-br-backup $installdir/
+        cp -r $sourcedir $installdir
 fi
-echo "${b}Finished moving script into | $installdir | ${x}"
+echo "${b}Finished installing scripts.${x}"
 echo
+
+
 
 echo "${b}Now adding backup script to daily crontab...${x}"
 echo
@@ -67,15 +86,19 @@ touch /etc/cron.daily/ee-br-backup
 chmod 755 /etc/cron.daily/ee-br-backup
 echo -e '#!/bin/bash' > /etc/cron.daily/ee-br-backup
 echo >> /etc/cron.daily/ee-br-backup
-echo "bash /root/nikksno/ee-br-backup/ee-br-backup" >> /etc/cron.daily/ee-br-backup
+echo "bash $installdir/ee-br-backup" >> /etc/cron.daily/ee-br-backup
 echo "${b}Finished adding backup script to daily crontab...${x}"
 echo
 
+
+
 echo "${b}Now removing installer directory...${x}"
 echo
-rm -r easyengine-autobackup
+rm -r $sourcedir
 echo "${b}Finished removing installer directory.${x}"
 echo
+
+
 
 echo "${b}Installation complete!...${x}"
 echo

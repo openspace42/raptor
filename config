@@ -1,0 +1,24 @@
+###############################################################################+
+############################# Config section start #############################
+################################################################################
+
+adminmail="admin@example.org"
+
+### Backups password [before the first run generate one with "pwgen 42 1" and paste it here below]
+
+backupspw=""
+
+### Backup Type: [local | s3]
+
+backuptype="local"
+
+### S3 config [only if backuptype=s3]
+
+awsaki="xxx"
+awssak="xxx"
+s3endpoint="s3.amazonaws.com"
+s3bucketname="easyengine"
+
+################################################################################
+############################## Config section end ##############################
+###############################################################################=

@@ -1,4 +1,4 @@
-# easyengine-wp-backup
+# easyengine-backup-restore
 
 ### Install on Ubuntu 16
 
@@ -7,22 +7,22 @@ apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/nikksno/easyengine-autobackup
-bash easyengine-autobackup/install
+git clone https://github.com/nikksno/easyengine-backup-restore
+bash easyengine-backup-restore/install
 ```
 ```
-nano nikksno/ee-wp-bu/ee-wp-bu
+nano nikksno/ee-br/config
 # [specify your backup settings]
 ```
 
-### Run manually
+### Run backup script manually
 
 ```
-bash nikksno/ee-wp-bu/ee-wp-bu
+bash nikksno/ee-br/ee-br-backup
 ```
 
 ### Confirm automatic daily run via cron is working
 
 ```
-cat logs/ee-wp-bu/latest-log
+cat logs/ee-br-backup/latest-log
 ```
