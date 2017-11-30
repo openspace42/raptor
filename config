@@ -8,7 +8,7 @@ adminmail="admin@example.org"
 
 backupspw=""
 minbackupsnumber="7"
-maxbackupsnumder="42"
+maxbackupsnumber="42"
 
 ### Backup Type: [local | s3]
 
