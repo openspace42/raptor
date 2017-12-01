@@ -27,8 +27,6 @@ dup_min_history="3M"
 
 ### Also upload a full backup file to S3 on the first of the month?
 s3_monthly_uploads=y
-### [if s3_monthly_uploads=y] How many S3 monthly uploads [months] to keep?
-s3_monthly_limit="120"
 
 awsaki="xxx"
 awssak="xxx"
