@@ -174,7 +174,7 @@ then
 		purge_loop
 	done
 
-	echo "${g}${b}Local archive size now low enough [$local_archive_size MB] per your settings.${x}"
+	echo "${g}${b}Local archive size now low enough [$local_archive_size MB] to respect your settings.${x}"
 	echo
 	echo "${b}Purged all backups older than the most recent | $counter |.${x}"
 	echo
@@ -378,11 +378,11 @@ then
 
         fi
 
-	### Also upload today's full backup file to S3 if s3_monthly_uploads=y
+	### Also upload today's full backup file to S3 if s3_monthly_uploads=y [only if this is NOT a manual run]
 
 	today_day_of_month="$(date +%-d)"
 
-	if [ $today_day_of_month = "1" ]
+	if [ $today_day_of_month = "1" ] && [ interactive = "n" ]
 	then
 		echo "${b}Now copying $archivedir/$backupname.tar.bz2 to S3 as well."
 		echo

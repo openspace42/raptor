@@ -5,31 +5,30 @@
 adminmail="admin@example.org"
 
 ### Backups password [before the first run generate one with "pwgen 42 1" and paste it here below]
-
 backupspw=""
 
 ### Minimum number of backups [days] to keep locally
-
 min_local_backups="7"
 
 ### Maximum number of backups [days] to keep locally
-
 max_local_backups="42"
 
 ### Maximum storage space for local backups in MB
-
 max_local_storage="8000"
 
+################################################################################
+
 ### Backup Type: [local | s3]
-
 backuptype="local"
-
-### S3 config [only if backuptype=s3]
 
 #### Minimum backup history to keep on S3.
 #### Indicate an interval, which is a number followed by one of the characters D, W, M, or Y (indicating days, weeks, months, or years respectively).
-
 dup_min_history="3M"
+
+### Also upload a full backup file to S3 on the first of the month?
+s3_monthly_uploads=y
+### [if s3_monthly_uploads=y] How many S3 monthly uploads [months] to keep?
+s3_monthly_limit="120"
 
 awsaki="xxx"
 awssak="xxx"
