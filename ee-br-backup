@@ -96,7 +96,7 @@ update_storage_info () {
 	www_dir_size="$(du -sm /var/www/ | xargs | sed -e "s|${wwwdir}/||g")"
 	est_backup_size=$(($www_dir_size * 2))
 	local_archive_items="$(ls -1q $archivedir | wc -l)"
-	local_archive_size="$(du -sh $archivedir | xargs | sed "s|${localbackupsdir}||g" | xargs)"
+	local_archive_size="$(du -sm $archivedir | xargs | sed "s|${archivedir}||g" | xargs)"
 
 }
 
