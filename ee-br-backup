@@ -388,7 +388,7 @@ then
 		echo
 
 		encrypt() {
-			gpg --output --passphrase "$backupspw" /tmp/$@ --symmetric -z 9 --require-secmem --cipher-algo AES256 --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count 65000000 --compress-algo BZIP2 $@
+			gpg --output  /$tmpdir/$@ --passphrase "$backupspw" --symmetric -z 9 --require-secmem --cipher-algo AES256 --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count 65000000 --compress-algo BZIP2 $@
 		}
 
 		decrypt() {
@@ -415,7 +415,7 @@ then
 		}
 
 		( cd $archivedir && encrypt $backupname.tar.bz2 )
-		putS3 /tmp/ $backupname.tar.bz2 /ee-br/archive/
+		putS3 /$tmpdir/ $backupname.tar.bz2 /ee-br/archive/
 
 	fi
 
