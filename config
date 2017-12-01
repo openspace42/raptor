@@ -26,6 +26,11 @@ backuptype="local"
 
 ### S3 config [only if backuptype=s3]
 
+#### Minimum backup history to keep on S3.
+#### Indicate an interval, which is a number followed by one of the characters D, W, M, or Y (indicating days, weeks, months, or years respectively).
+
+dup_min_history="3M"
+
 awsaki="xxx"
 awssak="xxx"
 s3endpoint="s3.amazonaws.com"

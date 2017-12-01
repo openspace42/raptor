@@ -161,7 +161,7 @@ echo
 if [ $local_archive_size -gt $max_local_storage ]
 then
 
-	echo "${b}Local archive size [$local_archive_size MB] LARGER than | max_local_storage | setting [$max_local_storage MB].${x}"
+	echo "${r}${b}Local archive size [$local_archive_size MB] LARGER than | max_local_storage | setting [$max_local_storage MB].${x}"
 	echo
 	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
 	echo
@@ -321,7 +321,7 @@ then
                 }
 
                 # How long to keep backups for
-                OLDER_THAN="1M"
+                OLDER_THAN="$dup_min_history"
 
                 # The source of your backup
                 SOURCE=$latestdir/ # Use / for full system backup [not the case for $scriptname]
