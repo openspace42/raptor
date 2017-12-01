@@ -34,8 +34,8 @@ sourcedir=/root/easyengine-backup-restore
 basedir=/root/nikksno
 installdir=$basedir/ee-br
 backupsdir=$installdir/backups
-localbackupsdir=$backupsdir/local
-s3backupsdir=$backupsdir/s3
+archivedir=$backupsdir/archive
+latestdir=$backupsdir/latest
 restoresdir=$installdir/restores
 tmpdir=/tmp/ee-br
 wwwdir=/var/www
@@ -81,8 +81,8 @@ then
 	rm -r $tmpdir/
 fi
 
-mkdir -p $localbackupsdir
-mkdir -p $s3backupsdir
+mkdir -p $archivedir
+mkdir -p $latestdir
 mkdir -p $tmpdir
 backupname=$scriptname-$now
 tmpbackupdir=$tmpdir/$backupname
@@ -90,79 +90,114 @@ mkdir -p $tmpbackupdir
 
 
 
-# Purge backups older than the latest $maxbackupsnumber
+update_storage_info () {
 
-localbackupsnumber="$(ls -1q $localbackupsdir | wc -l)"
-if [ $localbackupsnumber -gt $maxbackupsnumber ]
+	free_disk_space="$(df -m --output=avail / | xargs | sed -e 's/Avail //g')"
+	www_dir_size="$(du -sm /var/www/ | xargs | sed -e "s|${wwwdir}/||g")"
+	est_backup_size=$(($www_dir_size * 2))
+	local_archive_items="$(ls -1q $archivedir | wc -l)"
+	local_archive_size="$(du -sh $archivedir | xargs | sed "s|${localbackupsdir}||g" | xargs)"
+
+}
+
+
+
+purge_loop () {
+
+	if [ $local_archive_items -gt $min_local_backups ]
+	then
+
+		counter=$(($counter - 1))
+
+		# Prevent infinite loops in case of rm failure
+
+		if [ $counter = 0 ]
+		then
+			echo "${r}${b}Infinite loop error caught. Exiting...${b}"
+			exit
+		fi
+
+		if [ $local_archive_items -gt $counter ]
+		then
+			tailnumber=$(( $counter + 1 ))
+			( cd $archivedir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+		fi
+
+		update_storage_info
+
+	else
+
+		echo "${r}${b}Respecting your specified number of minimum backups [$min_local_backups] to keep doesn't leave enough space for a new backup.${x}"
+		echo
+		echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
+		echo
+		# Send email indicating backup aborted
+		echo "${b}Exiting...${x}"
+		echo
+		exit
+
+	fi
+
+}
+
+
+
+
+update_storage_info
+
+### Purge backups older than the latest $max_local_backups
+
+local_archive_items="$(ls -1q $archivedir | wc -l)"
+if [ $local_archive_items -gt $max_local_backups ]
 then
-        tailnumber=$(( $maxbackupsnumber + 1 ))
-        ( cd $localbackupsdir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+        tailnumber=$(( $max_local_backups + 1 ))
+        ( cd $archivedir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+	update_storage_info
 fi
 
+echo "${b}You have $local_archive_items local backups occupying $local_archive_size of space.${x}"
+echo
 
-
-freediskspace="$(df -m --output=avail / | xargs | sed -e 's/Avail //g')"
-wwwdirsize="$(du -sm /var/www/ | xargs | sed -e "s|${wwwdir}/||g")"
-estbackupsize=$(($wwwdirsize * 2))
-localbackupsnumber="$(ls -1q $localbackupsdir | wc -l)"
-localbackupssize="$(du -sh $localbackupsdir | xargs | sed "s|${localbackupsdir}||g" | xargs)"
-
-if [ $estbackupsize -gt $freediskspace ]
+if [ $local_archive_size -gt $max_local_storage ]
 then
 
-	echo "${r}${b}Estimated backup size [$estbackupsize MB] LARGER than available disk space [$freediskspace MB].${x}"
-	echo
-	echo "${b}You have $localbackupsnumber local backups occupying $localbackupssize of space.${x}"
+	echo "${b}Local archive size [$local_archive_size MB] LARGER than | max_local_storage | setting [$max_local_storage MB].${x}"
 	echo
 	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
 	echo
 
-	counter=$maxbackupsnumber
+	counter=$max_local_backups
 
-	while [ $estbackupsize -gt $freediskspace ]
+	while [ $local_archive_size -gt $max_local_storage ]
 	do
-
-		if [ $localbackupsnumber -gt $minbackupsnumber ]
-		then
-
-			counter=$(($counter - 1))
-
-			# Prevent infinite loops in case of rm failure
-
-			if [ $counter = 0 ]
-			then
-				echo "${r}${b}Infinite loop error caught. Exiting...${b}"
-				exit
-			fi
-
-			if [ $localbackupsnumber -gt $counter ]
-			then
-			        tailnumber=$(( $counter + 1 ))
-			        ( cd $localbackupsdir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
-			fi
-
-			freediskspace="$(df -m --output=avail / | xargs | sed -e 's/Avail //g')"
-			wwwdirsize="$(du -sm /var/www/ | xargs | sed -e "s|${wwwdir}/||g")"
-			estbackupsize=$(($wwwdirsize * 2))
-			localbackupsnumber="$(ls -1q $localbackupsdir | wc -l)"
-			localbackupssize="$(du -sh $localbackupsdir | xargs | sed "s|${localbackupsdir}||g" | xargs)"
-
-		else
-
-			echo "${r}${b}Respecting your specified number of minimum backups [$minbackupsnumber] to keep doesn't leave enough space for a new backup.${x}"
-			echo
-			echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
-			echo
-			# Send email indicating backup aborted
-			echo "${b}Exiting...${x}"
-			echo
-			exit
-
-		fi
-
+		purge_loop
 	done
 
-	echo "${g}${b}Enoguh free space [$freediskspace MB] now available for new backup.${x}"
+	echo "${g}${b}Local archive size now low enough [$local_archive_size MB] per your settings.${x}"
+	echo
+	echo "${b}Purged all backups older than the most recent | $counter |.${x}"
+	echo
+	echo "${b}Continuing...${x}"
+	echo
+
+fi
+
+if [ $est_backup_size -gt $free_disk_space ]
+then
+
+	echo "${r}${b}Estimated backup size [$est_backup_size MB] LARGER than available disk space [$free_disk_space MB].${x}"
+	echo
+	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
+	echo
+
+	counter=$max_local_backups
+
+	while [ $est_backup_size -gt $free_disk_space ]
+	do
+		purge_loop
+	done
+
+	echo "${g}${b}Enoguh free space [$free_disk_space MB] now available for new backup.${x}"
 	echo
 	echo "${b}Purged all backups older than the most recent | $counter |.${x}"
 	echo
@@ -221,10 +256,10 @@ echo "${b}Now compressing backup...${x}"
 echo
 
 cd $tmpdir
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $localbackupsdir/$backupname.tar.bz2
+tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname.tar.bz2
 
 echo
-echo "${g}${b}Finished compressing backup and stored in | $localbackupsdir/ | ${x}"
+echo "${g}${b}Finished compressing backup and stored in | $archivedir/ | ${x}"
 echo
 
 
@@ -234,7 +269,7 @@ then
 
         echo "${b}Now backing up to S3...${x}"
 
-        rsync -aAXx $tmpbackupdir/* $s3backupsdir/
+        rsync -aAXx $tmpbackupdir/* $latestdir/
         echo
 
         # Export some ENV variables so you don't have to type anything
@@ -287,7 +322,7 @@ then
                 OLDER_THAN="1M"
 
                 # The source of your backup
-                SOURCE=$s3backupsdir/ # Use / for full system backup [not the case for $scriptname]
+                SOURCE=$latestdir/ # Use / for full system backup [not the case for $scriptname]
 
                 FULL=
                 tail -1 ${FULLBACKLOGFILE} | grep ${TODAY} > /dev/null || true

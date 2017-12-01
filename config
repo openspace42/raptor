@@ -7,8 +7,18 @@ adminmail="admin@example.org"
 ### Backups password [before the first run generate one with "pwgen 42 1" and paste it here below]
 
 backupspw=""
-minbackupsnumber="7"
-maxbackupsnumber="42"
+
+### Minimum number of backups [days] to keep locally
+
+min_local_backups="7"
+
+### Maximum number of backups [days] to keep locally
+
+max_local_backups="42"
+
+### Maximum storage space for local backups in MB
+
+max_local_storage="8000"
 
 ### Backup Type: [local | s3]
 
