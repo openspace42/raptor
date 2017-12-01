@@ -382,7 +382,7 @@ then
 
 	today_day_of_month="$(date +%-d)"
 
-	if [ $today_day_of_month = "1" ] && [ interactive = "n" ]
+	if [ $today_day_of_month = "1" ] && [ $interactive = "n" ]
 	then
 		echo "${b}Now copying $archivedir/$backupname.tar.bz2 to S3 as well."
 		echo
