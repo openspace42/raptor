@@ -127,7 +127,7 @@ purge_loop () {
 
 	else
 
-		echo "${r}${b}Respecting your specified number of minimum backups [$min_local_backups] to keep doesn't leave enough space for a new backup.${x}"
+		echo "${r}${b}The specified number of minimum backups to keep [$min_local_backups] is too high $errordescr.${x}"
 		echo
 		echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
 		echo
@@ -165,6 +165,7 @@ then
 	echo
 	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
 	echo
+	errordescr="to stay below the | max_local_storage | setting you chose"
 
 	counter=$max_local_backups
 
@@ -189,6 +190,7 @@ then
 	echo
 	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
 	echo
+	errordescr="to free enough disk space for the next backup"
 
 	counter=$max_local_backups
 
