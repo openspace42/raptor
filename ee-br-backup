@@ -155,7 +155,7 @@ then
 	update_storage_info
 fi
 
-echo "${b}You have $local_archive_items local backups occupying $local_archive_size of space.${x}"
+echo "${b}You have $local_archive_items local backups occupying $local_archive_size MB of space.${x}"
 echo
 
 if [ $local_archive_size -gt $max_local_storage ]
@@ -227,7 +227,7 @@ do
 		wpconfigfile="$site/wp-config.php"
 		if [ -f $wpconfigfile ]
 		then
-			echo "${b}  Proceeding with ${l}wordpress${x}${b} site backup...${x}"
+			echo "${b}   Proceeding with ${l}wordpress${x}${b} site backup...${x}"
 			echo
 			WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
 			WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
@@ -235,14 +235,14 @@ do
 			/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $thissitedir/mysqldump.sql
 			cp $wpconfigfile $thissitedir/wp-config.php
 		else
-			echo "${b}  Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
+			echo "${b}   Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
 			echo
 		fi
 		if [ -d $site/htdocs/ ]
 		then
 			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
 		else
-			echo "${r}${b}  No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+			echo "${r}${b}   No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
 			echo
 		fi
 		echo "${b}Finished backup for | $thissite |.${x}"
@@ -283,7 +283,7 @@ then
         #GPG_KEY= # Insert GPG key here if using GPG
 
         # The S3 destination followed by bucket name
-        DEST="s3://$s3endpoint/$s3bucketname/"
+        DEST="s3://$s3endpoint/$s3bucketname/ee-br/latest/"
 
 	duplicitylogdir=/root/logs/$scriptname-duplicity
 	duplicitybckplogdir=$duplicitylogdir/backup
@@ -377,6 +377,47 @@ then
                 unset PASSPHRASE
 
         fi
+
+	### Also upload today's full backup file to S3 if s3_monthly_uploads=y
+
+	today_day_of_month="$(date +%-d)"
+
+	if [ $today_day_of_month = "1" ]
+	then
+		echo "${b}Now copying $archivedir/$backupname.tar.bz2 to S3 as well."
+		echo
+
+		encrypt() {
+			gpg --output --passphrase "$backupspw" /tmp/$@ --symmetric -z 9 --require-secmem --cipher-algo AES256 --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count 65000000 --compress-algo BZIP2 $@
+		}
+
+		decrypt() {
+			gpg $@
+		}
+
+		putS3 () {
+			path=$1
+			file=$2
+			aws_path=$3
+			bucket="$s3bucketname"
+			date=$(date +"%a, %d %b %Y %T %z")
+			acl="x-amz-acl:public-read"
+			content_type='application/x-compressed-tar'
+			string="PUT\n\n$content_type\n$date\n$acl\n/$bucket$aws_path$file"
+			signature=$(echo -en "${string}" | openssl sha1 -hmac "${awssak}" -binary | base64)
+			curl -X PUT -T "$path/$file" \
+			-H "Host: $bucket.s3.amazonaws.com" \
+			-H "Date: $date" \
+			-H "Content-Type: $content_type" \
+			-H "$acl" \
+			-H "Authorization: AWS ${awsaki}:$signature" \
+			"https://$bucket.s3.amazonaws.com$aws_path$file"
+		}
+
+		( cd $archivedir && encrypt $backupname.tar.bz2 )
+		putS3 /tmp/ $backupname.tar.bz2 /ee-br/archive/
+
+	fi
 
 fi
 
