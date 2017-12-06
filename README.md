@@ -1,4 +1,4 @@
-# easyengine-backup-restore
+# EasyEngine-Backup-Restore
 
 ### Install [or update / re-install] on Ubuntu 16
 
