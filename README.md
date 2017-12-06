@@ -7,7 +7,7 @@ apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/nikksno/easyengine-backup-restore
+git clone https://github.com/openspace42/easyengine-backup-restore
 bash easyengine-backup-restore/install
 ```
 ```
