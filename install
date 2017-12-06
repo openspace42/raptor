@@ -13,7 +13,7 @@ set -u
 ################################################################################
 
 # Don't change these! | No trailing slash!
-projname="easyengine-backup-restore"
+projname="EasyEngine-Backup-Restore"
 sourcedir=/root/$projname
 basedir=/root/openspace42
 installdir=$basedir/ee-br
