@@ -13,13 +13,13 @@ set -u
 ################################################################################
 
 # Don't change these! | No trailing slash!
-
-sourcedir=/root/easyengine-backup-restore
-basedir=/root/nikksno
+projname="easyengine-backup-restore"
+sourcedir=/root/$projname
+basedir=/root/openspace42
 installdir=$basedir/ee-br
 backupsdir=$installdir/backups
-localbackupsdir=$backupsdir/local
-s3backupsdir=$backupsdir/s3
+archivedir=$backupsdir/archive
+latestdir=$backupsdir/latest
 restoresdir=$installdir/restores
 tmpdir=/tmp/ee-br
 wwwdir=/var/www
