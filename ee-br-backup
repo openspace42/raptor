@@ -1,14 +1,14 @@
 #!/bin/bash
 
+set -e
+set -u
+
 r=`tput setaf 1`
 g=`tput setaf 2`
 l=`tput setaf 4`
 m=`tput setaf 5`
 x=`tput sgr0`
 b=`tput bold`
-
-set -e
-set -u
 
 # All in One Bash Logger | v0.49 | 20171018 | 20171128 | Nk
 
