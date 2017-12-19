@@ -1,50 +1,37 @@
 #!/bin/bash
 
-r=`tput setaf 1`
-g=`tput setaf 2`
-l=`tput setaf 4`
-m=`tput setaf 5`
-x=`tput sgr0`
-b=`tput bold`
-
 set -e
 set -u
 
-# All in One Bash Logger | v0.49 | 20171018 | 20171128 | Nk
+r=$(tput setaf 1)
+g=$(tput setaf 2)
+l=$(tput setaf 4)
+m=$(tput setaf 5)
+x=$(tput sgr0)
+b=$(tput bold)
 
-scriptname=`basename "$0"`                                            # The name of this script
-now="$(date +"%Y-%m-%d_%H-%M-%S")"                                    # The current timestamp
-logdir="$HOME/logs/$scriptname"                                       # Don't store anything else than logs in here!
-logfile="$logdir/$now"                                                # The new logfile
-if [[ -t 1 ]]; then interactive=y; else interactive=n; fi             # Determine if this is an interactive shell
-mkdir -p $logdir                                                      # Touch the dir
-touch $logfile                                                        # Touch the file
-if [ -f $logdir/latest-log ]; then rm $logdir/latest-log; fi          # Remove the old latest-log symlink
-ln -s $logfile $logdir/latest-log                                     # Recreate the symlink
-( cd $logdir && rm `ls -t | awk 'NR>43'` ) 2> /dev/null || true       # Delete all logs older than the newest 42
-exec >  >(tee -ia $logfile)                                           # Log stdout to logfile
-if [ $interactive = "n" ]; then exec 2> >(tee -ia $logfile >&2); fi   # Log stderr to logfile if non-interactive
-echo && echo "Starting $scriptname script on $now..." && echo         # Write heading to logfile
+scriptname=$(basename "$0")
+now="$(date +"%Y-%m-%d_%H-%M-%S")"
+echo && echo "Starting $scriptname script on $now..." && echo
 
 ################################################################################
 
 # Don't change these! | No trailing slash!
-
-sourcedir=/root/easyengine-backup-restore
-basedir=/root/nikksno
-installdir=$basedir/ee-br
+projname="EasyEngine-Backup-Restore"
+shortname="ee-br"
+sourcedir=/root/$projname
+basedir=/root/openspace42
+installdir=$basedir/$shortname
 backupsdir=$installdir/backups
-localbackupsdir=$backupsdir/local
-s3backupsdir=$backupsdir/s3
+archivedir=$backupsdir/archive
+latestdir=$backupsdir/latest
 restoresdir=$installdir/restores
-tmpdir=/tmp/ee-br
+tmpdir=/tmp/$shortname
 wwwdir=/var/www
 
 if [[ $EUID -ne 0 ]]
 then
-	echo "${r}${b}This script must be run as root. Run it as:${x}"
-	echo
-	echo "${b}sudo bash $installdir/$scriptname${x}"
+	echo "${r}${b}This script must be run as root.${x}"
 	echo
         # Send email indicating backup aborted
         echo "${b}Exiting...${x}"
@@ -56,7 +43,9 @@ if [ ! -f $installdir/config ]
 then
 	echo "${r}${b} | $installdir/config | file NOT found.${x}"
 	echo
-	echo "${b}If you've deleted or moved yours by mistake, simply re-run the initial installation.${x}"
+	echo "${b}If you've deleted yours by mistake, re-run the initial installation.${x}"
+	echo
+	echo "${b}If instead you've moved it to another location, simply move it back to | $installdir |.${x}"
 	echo
 	# Send email indicating backup aborted
         echo "${b}Exiting...${x}"
@@ -74,25 +63,529 @@ fi
 
 
 
+choice="${b}Is the backup you're trying to restore stored locally on this machine [i.e. you're trying to restore a previous state of this running instance of easyengine] or is it stored elsewhere [i.e. you're changing machine or your previous machine's data was wiped or lost]? ${x}"
+echo "$choice"
+echo
+options=("backup file stored locally" "backup file stored elsewhere" "exit")
+select opt in "${options[@]}"
+do
+    echo
+    case $opt in
+	"backup file stored locally")
+	    restoresource=here
+	    break
+	    ;;
+	"backup file stored elsewhere")
+	    restoresource=elsewhere
+	    break
+	    ;;
+	"exit")
+	    echo "${b}Exiting...${x}"
+	    echo
+	    exit
+	    ;;
+	*)
+	    echo "${r}${b}Invalid option. Retry...${x}"
+	    echo
+	    ;;
+    esac
+done
+
+
+
+duplicitylogdir="null"
+
+if [ $restoresource = "here" ]
+then
+        if [ ! -d $archivedir ]
+        then
+                echo "${r}${b}Local backups directory [$archivedir] not found.${x}"
+                echo
+                echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
+                echo
+                echo "${b}Check your $installdir for a directory called | backups(-[something]) | and if you find something rename the most recently datestamped directory to | backups | ."
+                echo
+                echo "${b}Exiting...${x}"
+                echo
+                exit
+        fi
+
+        echo "${b}These are the backup dates available for restore:${x}"
+        echo
+        ls -1 "$archivedir" | sed -e 's/ee-br-backup-//g' | sed -e 's/.tar.bz2//g'
+        echo
+        read -rp "${b}[press enter to continue...]${x}"
+        clear
+
+        choice="${b}Now choose the file you'd like to restore: ${x}"
+        echo "$choice"
+        echo
+
+	set +u
+
+        cd $archivedir
+        unset options i
+        while IFS= read -r -d $'\n' f; do
+                options[i++]="$f"
+        done < <(find ./ -maxdepth 1 -type f -name "*.tar.bz2" | sort -r )
+
+	set -u
+
+        accept=n
+        until [ $accept = "y" ]
+        do
+
+                select selbackupfile in "${options[@]}" "exit"
+                do
+                        echo
+                        case $selbackupfile in
+                                *.tar.bz2)
+                                        echo "${b}Backup file $selbackupfile selected.${x}"
+                                        break
+                                        ;;
+                                "exit")
+                                        echo "${b}Exiting...${x}"
+                                        echo
+                                        exit
+                                        ;;
+                                *)
+                                        echo "${r}${b}Invalid option. Retry...${x}"
+                                        echo
+                                        ;;
+                        esac
+                done
+                echo
+
+                valid=n
+                until [ $valid = "y" ]
+                do
+                        read -n 1 -rp "${b}Is this the correct file?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+                        case $answer in
+                        "")
+                                echo
+                                valid=y
+                                accept=y
+                                ;;
+                        y)
+                                echo -e "\\n"
+                                valid=y
+                                accept=y
+                                ;;
+                        n)
+                                echo -e "\\n"
+                                echo "${b}No problem, please select your desired file again now...${x}"
+                                echo
+                                valid=y
+                                accept=n
+                                ;;
+                        e)
+                                echo -e "\\n"
+                                echo "${b}Exiting...${x}"
+                                echo
+                                exit
+                                ;;
+                        *)
+                                echo -e "\\n"
+                                echo "${b}Invalid option. Retry...${x}"
+                                echo
+                                valid=n
+                                accept=n
+                                ;;
+                        esac
+                done
+
+        done
+
+        mkdir -p $restoresdir/local/
+        tar -xvjf "$selbackupfile" -C "$restoresdir"/local/
+
+else
+
+        if [ "$backuptype" = "s3" ]
+        then
+                echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
+                echo
+                choice="${b}Do you want to restore from S3 or from a standalone $shortname backup file you have stored elsewhere? ${x}"
+                echo "$choice"
+                options=("S3" "elsewhere" "exit")
+                select opt in "${options[@]}"
+                do
+                    echo
+                    case $opt in
+                        "S3")
+                            restoretype=s3
+                            break
+                            ;;
+                        "elsewhere")
+                            restoretype=elsewhere
+                            break
+                            ;;
+                        "exit")
+                            echo "${b}Exiting...${x}"
+                            echo
+                            exit
+                            ;;
+                        *)  echo "${r}${b}Invalid option. Retry...${x}"
+                            echo
+                            ;;
+                    esac
+                done
+        else
+                restoretype=elsewhere
+        fi
+
+
+
+        if [ $restoretype = "s3" ]
+        then
+
+		# Export some ENV variables so you don't have to type anything
+		export AWS_ACCESS_KEY_ID=$awsaki
+		export AWS_SECRET_ACCESS_KEY=$awssak
+		export PASSPHRASE=$backupspw
+
+		# Your GPG key
+	        #GPG_KEY= # Insert GPG key here if using GPG
+
+	        # The S3 destination followed by bucket name
+	        DEST="s3://$s3endpoint/$s3bucketname/$shortname/latest/"
+
+		HOST=$(hostname)
+		DATE=$(date +%Y-%m-%d)
+		MAILADDR="$adminmail"
+		TODAY=$(date +%d%m%Y)
+
+		########################################################################
+
+		set +e
+
+		echo "${b}Now restoring from S3 to $restoresdir/s3/...${x}"
+		echo
+
+		duplicitylogdir=/root/logs/$shortname-duplicity
+		duplicityrestlogdir=$duplicitylogdir/restore
+
+		# Set up some variables for logging
+		LOGFILE="$duplicityrestlogdir/restore.log"
+		DAILYLOGFILE="$duplicityrestlogdir/restore.daily.log"
+		FULLBACKLOGFILE="$duplicityrestlogdir/restore.full.log"
+
+		is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
+
+		if [ ! -d $duplicityrestlogdir ]
+		then
+			mkdir -p $duplicityrestlogdir
+		fi
+
+		if [ ! -f $FULLBACKLOGFILE ]
+		then
+			touch $FULLBACKLOGFILE
+		fi
+
+		if [ "$is_running" -eq 0 ]
+		then
+			# Clear the old daily log file
+			cat /dev/null > ${DAILYLOGFILE}
+
+			# Trace function for logging, don't change this
+			trace () {
+				stamp=$(date +%Y-%m-%d_%H:%M:%S)
+				echo "$stamp: $*" >> ${DAILYLOGFILE}
+			}
+
+			# The source of your backup
+			# SOURCE=$backupsdir/ # Use / for full system backup
+
+			FULL=
+			tail -1 "${FULLBACKLOGFILE}" | grep "${TODAY}" > /dev/null || true
+			if [ $? -ne 0 -a "$(date +%d)" -eq 1 ]
+			then
+				FULL=full
+			fi;
+
+			trace "Backup for local filesystem started"
+
+			trace "... backing up filesystem"
+
+			if [ -d "$restoresdir"/s3/ ]
+			then
+				rm -r ${restoresdir:?}/s3/
+			fi
+			duplicity "${DEST}" "$restoresdir"/s3/
+
+			trace "Backup for local filesystem complete"
+			trace "------------------------------------"
+
+			# Append the daily log file to the main log file
+			cat "$DAILYLOGFILE" >> $LOGFILE
+
+			if [ ! -d "$restoresdir"/s3/ ]
+			then
+			        echo "${r}${b}Restore from S3 failed.${x}"
+			        echo
+			        echo "${b}This is likely due to an incorrect passphrase [check the above error log for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
+				echo
+				echo "${b}Edit the file | $installdir/config | and replace the currently specified passphrase with the old one from your previous machine, then re-run this script.${x}"
+				echo
+				echo "${b}If you have lost your previous encryption passphrase, you've also lost access to your backups.${x}"
+				echo
+				echo "${b}Exiting...${x}"
+			        echo
+			        exit
+			fi
+
+		fi
+
+		set -e
+
+        else
+
+		echo "${b}Ok, restoring from a standalone $shortname backup file.${x}"
+		echo
+		if [ -d "/root/$shortname-restore/" ]
+		then
+			rm -r "/root/$shortname-restore/"
+		fi
+		mkdir -p "/root/$shortname-restore/"
+		read -p "${b}Do you have a file called | $shortname-backup-[date].tar.bz2 | [or similar]? (Y/n): ${x}" -n 1 -r
+		echo
+		if [[ ! $REPLY =~ ^[Nn]$ ]]
+		then
+			defined=n
+			until [ $defined = "y" ]
+			do
+				exists=n
+				until [ $exists = "y" ]
+				do
+					standalonebackupfile=""
+					until [ ! $standalonebackupfile = "" ]
+					do
+						read -rp "${b}Ok, specify the path to that file now: ${x}" standalonebackupfile
+						echo
+					done
+					if [ -f "$standalonebackupfile" ]
+					then
+						exists=y
+					else
+						echo "${r}${b}The specified file does not exists. Please retry...${x}"
+						echo
+						exists=n
+					fi
+				done
+				valid=n
+				until [ $valid = "y" ]
+				do
+					read -n 1 -rp "${b}Is | $standalonebackupfile | correct? (Y/n/e[xit]) ${x}" answer;
+					case $answer in
+					"")
+						echo
+						valid=y
+						defined=y
+						;;
+					y)
+						echo -e "\\n"
+						valid=y
+						defined=y
+						;;
+					n)
+						echo -e "\\n"
+						echo "${b}Ok, then please try again...${x}"
+						echo
+						valid=y
+						defined=n
+						;;
+					e)
+						echo -e "\\n"
+			        		echo "${b}Exiting...${x}"
+			        		echo
+			        		exit
+			        		;;
+					*)
+						echo -e "\\n"
+						echo "${r}${b}Invalid option. Retry...${x}"
+			        		echo
+						valid=n
+					defined=n
+				        ;;
+					esac
+				done
+			done
+			echo "${b}Backup file $standalonebackupfile selected.${x}"
+			echo
+			tar -xvjf "$standalonebackupfile" -C "/root/$shortname-restore/"
+			subdir=("/root/$shortname-restore/"*/)
+			restoresubdir="$(echo "$subdir" | sed "s|/root/${shortname}-restore/||" | tr -d '/')"
+			mv "/root/$shortname-restore/$restoresubdir"/* "/root/$shortname-restore/"
+			rm -r "/root/$shortname-restore/$restoresubdir"
+		else
+			echo "${b}Ok, no problem. Make sure you populate the | /root/$shortname-restore/ | directory with these 4 files/directories from your standalone backup:${x}"
+			echo
+			echo "${b}1] /root/$shortname-restore/config${x}"
+			echo "${b}2] /root/$shortname-restore/ejabberd-mnesia-backup${x}"
+			echo "${b}3] /root/$shortname-restore/etc-ejabberd${x}"
+			echo "${b}4] /root/$shortname-restore/var-lib-ejabberd${x}"
+			echo
+			echo "${r}${b}If you don't correctly place all 4 files/directories, the restore will not work correctly [you will be alerted if something is wrong further along this script]${x}"
+			echo
+			echo "${b}As soon as you're done moving these items into place...${x}"
+			echo
+			read -rp "${b}[press enter to continue...]${x}"
+			clear
+		fi
+
+        fi
+
+fi
+echo
+
+
+
+################################################################################
+
+
+
+### Perform a [last] backup of this currently running installation just in case
+
+echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $shortname installation just in case...${x}"
+echo
+
 if [ -d $tmpdir ]
 then
-	rm -r $tmpdir/
+	rm -r ${tmpdir:?}
 fi
-
-mkdir -p $localbackupsdir
-mkdir -p $s3backupsdir
+mkdir -p $archivedir
+### No need to create S3 dir as we're only backing up locally
 mkdir -p $tmpdir
 backupname=$scriptname-$now
 tmpbackupdir=$tmpdir/$backupname
-mkdir -p $tmpbackupdir
+mkdir -p "$tmpbackupdir"
+
+
+
+update_storage_info () {
+
+	free_disk_space="$(df -m --output=avail / | xargs | sed -e 's/Avail //g')"
+	ref_dir_size="$(du -sm "$wwwdir" | xargs | sed -e "s|"${wwwdir}"||g" | xargs)"
+	### As this is a local only backup there's no need to calculate advanced S3 estimated backup sizes
+	est_backup_size=$(($ref_dir_size * 2))
+	local_archive_items="$(ls -1q $archivedir | wc -l)"
+	local_archive_size="$(du -sm $archivedir | xargs | sed "s|${archivedir}||g" | xargs)"
+
+}
+
+
+
+purge_loop () {
+
+	if [ $local_archive_items -gt $min_local_backups ]
+	then
+
+		counter=$(($counter - 1))
+
+		# Prevent infinite loops in case of rm failure
+
+		if [ $counter = 0 ]
+		then
+			echo "${r}${b}Infinite loop error caught. Exiting...${b}"
+			exit
+		fi
+
+		if [ $local_archive_items -gt $counter ]
+		then
+			tailnumber=$(( $counter + 1 ))
+			( cd $archivedir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+		fi
+
+		update_storage_info
+
+	else
+
+		echo "${r}${b}The specified number of minimum backups to keep [$min_local_backups] is too high $errordescr.${x}"
+		echo
+		echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
+		echo
+		# Send email indicating backup aborted
+		echo "${b}Exiting...${x}"
+		echo
+		exit
+
+	fi
+
+}
+
+
+
+update_storage_info
+
+### Purge backups older than the latest $max_local_backups
+
+local_archive_items="$(ls -1q $archivedir | wc -l)"
+if [ $local_archive_items -gt $max_local_backups ]
+then
+        tailnumber=$(( $max_local_backups + 1 ))
+        ( cd $archivedir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+	update_storage_info
+fi
+
+echo "${b}You have $local_archive_items local backups occupying $local_archive_size MB of space.${x}"
+echo
+
+if [ $local_archive_size -gt $max_local_storage ]
+then
+
+	echo "${r}${b}Local archive size [$local_archive_size MB] LARGER than | max_local_storage | setting [$max_local_storage MB].${x}"
+	echo
+	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
+	echo
+	errordescr="to stay below the | max_local_storage | setting you chose"
+
+	counter=$max_local_backups
+
+	while [ $local_archive_size -gt $max_local_storage ]
+	do
+		purge_loop
+	done
+
+	echo "${g}${b}Local archive size now low enough [$local_archive_size MB] to respect your settings.${x}"
+	echo
+	echo "${b}Purged all backups older than the most recent | $counter |.${x}"
+	echo
+	echo "${b}Continuing...${x}"
+	echo
+
+fi
+
+if [ $est_backup_size -gt $free_disk_space ]
+then
+
+	echo "${r}${b}Estimated backup size [$est_backup_size MB] LARGER than available disk space [$free_disk_space MB].${x}"
+	echo
+	echo "${b}Now purging old backups while respecting your specified number of minimum backups to keep...${x}"
+	echo
+	errordescr="to free enough disk space for the next backup"
+
+	counter=$max_local_backups
+
+	while [ $est_backup_size -gt $free_disk_space ]
+	do
+		purge_loop
+	done
+
+	echo "${g}${b}Enoguh free space [$free_disk_space MB] now available for new backup.${x}"
+	echo
+	echo "${b}Purged all backups older than the most recent | $counter |.${x}"
+	echo
+	echo "${b}Continuing...${x}"
+	echo
+
+fi
 
 
 
 echo "${b}Now backing up locally...${x}"
 echo
 
-# Purge backups older than the latest 42
-( cd $localbackupsdir && rm `ls -t | awk 'NR>42'` ) 2> /dev/null || true
+
 
 for site in $wwwdir/*
 do
@@ -106,7 +599,7 @@ do
 		wpconfigfile="$site/wp-config.php"
 		if [ -f $wpconfigfile ]
 		then
-			echo "${b}  Proceeding with ${l}wordpress${x}${b} site backup...${x}"
+			echo "${b}   Proceeding with ${l}wordpress${x}${b} site backup...${x}"
 			echo
 			WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
 			WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
@@ -114,14 +607,14 @@ do
 			/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $thissitedir/mysqldump.sql
 			cp $wpconfigfile $thissitedir/wp-config.php
 		else
-			echo "${b}  Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
+			echo "${b}   Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
 			echo
 		fi
 		if [ -d $site/htdocs/ ]
 		then
 			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
 		else
-			echo "${r}${b}  No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+			echo "${r}${b}   No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
 			echo
 		fi
 		echo "${b}Finished backup for | $thissite |.${x}"
@@ -137,130 +630,169 @@ echo "${b}Now compressing backup...${x}"
 echo
 
 cd $tmpdir
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $localbackupsdir/$backupname.tar.bz2
 
-echo
-echo "${g}${b}Finished compressing backup and stored in | $localbackupsdir/ | ${x}"
-echo
+# Give local backup a custom name so that it's clear it's the last one before a rollback in time
+tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname-last-backup-before-"$now"-restore.tar.bz2
 
+### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
-
-if [ $backuptype = "s3" ]
+if [ $restoresource = "here" ]
 then
-
-        echo "${b}Now backing up to S3...${x}"
-
-        rsync -aAXx $tmpbackupdir/* $s3backupsdir/
+        echo "${b}Backed up current installation to $archivedir.${x}"
         echo
-
-        # Export some ENV variables so you don't have to type anything
-        export AWS_ACCESS_KEY_ID=$awsaki
-        export AWS_SECRET_ACCESS_KEY=$awssak
-        export PASSPHRASE=$backupspw
-
-        # Your GPG key
-        #GPG_KEY= # Insert GPG key here if using GPG
-
-        # The S3 destination followed by bucket name
-        DEST="s3://$s3endpoint/$s3bucketname/"
-
-	duplicitylogdir=/root/logs/$scriptname-duplicity
-	duplicitybckplogdir=$duplicitylogdir/backup
-
-        # Set up some variables for logging
-        LOGFILE="$duplicitybckplogdir/backup.log"
-        DAILYLOGFILE="$duplicitybckplogdir/backup.daily.log"
-        FULLBACKLOGFILE="$duplicitybckplogdir/backup.full.log"
-        HOST=`hostname`
-        DATE=`date +%Y-%m-%d`
-        MAILADDR="$adminmail"
-        TODAY=$(date +%d%m%Y)
-
-        is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
-
-        if [ ! -d $duplicitybckplogdir ]
-        then
-                mkdir -p $duplicitybckplogdir
-        fi
-
-        if [ ! -f $FULLBACKLOGFILE ]
-        then
-                touch $FULLBACKLOGFILE
-        fi
-
-        if [ $is_running -eq 0 ]
-        then
-                # Clear the old daily log file
-                cat /dev/null > ${DAILYLOGFILE}
-
-                # Trace function for logging, don't change this
-                trace () {
-                        stamp=`date +%Y-%m-%d_%H:%M:%S`
-                        echo "$stamp: $*" >> ${DAILYLOGFILE}
-                }
-
-                # How long to keep backups for
-                OLDER_THAN="1M"
-
-                # The source of your backup
-                SOURCE=$s3backupsdir/ # Use / for full system backup [not the case for $scriptname]
-
-                FULL=
-                tail -1 ${FULLBACKLOGFILE} | grep ${TODAY} > /dev/null || true
-                if [ $? -ne 0 -a $(date +%d) -eq 1 ]
-                then
-                        FULL=full
-                fi;
-
-                trace "Backup for local filesystem started"
-
-                trace "... removing old backups"
-
-                duplicity remove-older-than ${OLDER_THAN} ${DEST} >> ${DAILYLOGFILE} 2>&1 || true
-
-                trace "... backing up filesystem"
-
-                #    duplicity \
-                #        ${FULL} \
-                #        --encrypt-key=${GPG_KEY} \
-                #        --sign-key=${GPG_KEY} \
-                #        --include=/var/rsnap-mysql \
-                #        --include=/var/www \
-                #        --include=/etc \
-                #        --exclude=/** \
-                #        ${SOURCE} ${DEST} >> ${DAILYLOGFILE} 2>&1
-
-                duplicity ${FULL} ${SOURCE} ${DEST} # Insert --encrypt-key and --sign-key after ${FULL} if using GPG
-
-                trace "Backup for local filesystem complete"
-                trace "------------------------------------"
-
-                # Send the daily log file by email
-                #cat "$DAILYLOGFILE" | mail -s "Duplicity Backup Log for $HOST - $DATE" $MAILADDR
-                #BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep Errors | awk '{ print $2 }'`
-                BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep -i error | wc -l`
-                if [ "$BACKUPSTATUS" != "0" ]
-                then
-                        cat "$DAILYLOGFILE" | mail -aFrom:"$scriptname@$HOST" -s "ERROR in $scriptname backup for $HOST on $DATE" $MAILADDR
-                elif [ "$FULL" = "full" ]
-                then
-                        echo "$(date +%d%m%Y_%T) Full Back Done" >> $FULLBACKLOGFILE
-                fi
-
-                # Append the daily log file to the main log file
-                cat "$DAILYLOGFILE" >> $LOGFILE
-
-                # Reset the ENV variables. Don't need them sitting around
-                unset AWS_ACCESS_KEY_ID
-                unset AWS_SECRET_ACCESS_KEY
-                unset PASSPHRASE
-
-        fi
-
+else
+	mkdir -p "$backupsdir"/old
+        mv "$archivedir" "$backupsdir"/old/archive-old-before-"$now"-restore
+	if [ ! $duplicitylogdir = "null" ]
+	then
+		mkdir -p "$duplicitylogdir"/old
+	        mv "$duplicitylogdir"/backup/ "$duplicitylogdir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
+	fi
+        echo "Backed up current installation to local backups directory and moved the latter to $backupsdir/old/archive-old-before-$now-restore."
+        echo
 fi
 
-rm -r $tmpbackupdir
-rm -r $tmpdir/* 2> /dev/null || true
+
+
+################################################################################
+
+
+
+echo "${b}Now restoring $shortname from backup...${x}"
+echo
+
+
+
+if [ $restoresource = "here" ]
+then
+        restorefilename="$(echo "$selbackupfile" | sed 's|./||g' | sed 's/-last-backup.*-restore//' | sed 's/.tar.bz2//g')"
+        restorefileloc=$restoresdir/local/$restorefilename
+else
+        if [ $restoretype = "s3" ]
+        then
+                restorefileloc=$restoresdir/s3/
+        else
+                restorefileloc="/root/$shortname-restore/"
+        fi
+fi
+
+
+
+for site in $restorefileloc/*
+do
+
+	if [ -d "$site" ]
+	then
+
+		this_site="$(echo "$site" | sed "s|${restorefileloc}/||")"
+		echo "${b}*] Now evaluating site | ${g}$thissite${x}${b} | ${x}"
+		echo
+		www_site_dir="$wwwdir/$thissite"
+
+		echo $site #debug
+		echo $this_site #debug
+		echo $www_site_dir #debug
+
+		proceed=y
+
+		if [ -d $www_site_dir ]
+		then
+
+			echo "${r}${b}   This site already exists on this machine.${x}"
+			echo
+			read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
+			echo
+			if [[ ! $REPLY =~ ^[Nn]$ ]]
+			then
+				echo "${b}   Ok, proceeding...${x}"
+				echo
+				ee site delete $thissite --experimental
+			else
+				echo
+				echo "${b}   Ok, skipping...${x}"
+				echo
+				proceed=n
+			fi
+		fi
+
+		if [ $proceed = y ]
+		then
+
+			ee site create $thissite
+
+			### Test to see if site to be restored is a wordpress site and if it is restore it while replacing new database details
+
+			real_wp_config_file="$site/wp-config.php"
+			if [ -f $real_wp_config_file ]
+			then
+
+				echo "${b}   Proceeding with ${l}wordpress${x}${b} site restore...${x}"
+				echo
+
+				ee site update $thissite --wpfc
+
+				www_wp_config_file="$www_site_dir/wp-config.php"
+
+				www_WPDBNAME=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+				www_WPDBUSER=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
+				www_WPDBPASS=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+				old_WPDBNAME=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+				old_WPDBUSER=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
+				old_WPDBPASS=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+				mv "$www_wp_config_file" "$www_wp_config_file.pre-restore-original-file"
+				cp "$real_wp_config_file" "$www_wp_config_file"
+
+				sed -i "s|${old_WPDBNAME}|${www_WPDBNAME}|g" "$www_wp_config_file"
+				sed -i "s|${old_WPDBUSER}|${www_WPDBUSER}|g" "$www_wp_config_file"
+				sed -i "s|${old_WPDBPASS}|${www_WPDBPASS}|g" "$www_wp_config_file"
+
+				mysql -u"$www_WPDBUSER" -p"${www_WPDBPASS}" "${www_WPDBNAME}" < "$site/mysqldump.sql"
+
+			else
+
+				echo "${b}   Proceeding with ${m}NON-wordpress${x}${b} site restore...${x}"
+				echo
+				read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
+				echo
+				if [[ ! $REPLY =~ ^[Nn]$ ]]
+				then
+					echo "${b}   Ok, proceeding...${x}"
+					echo
+					ee site update $thissite --php
+				else
+					echo
+					echo "${b}   Ok, skipping...${x}"
+					echo
+				fi
+
+			fi
+
+			if [ -d $site/htdocs/ ]
+			then
+				rsync -aAXx --delete "$site/htdocs" "$www_site_dir/htdocs"
+			else
+				echo "${r}${b}   No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+				echo
+			fi
+
+			echo "${b}Finished backup for | $thissite |.${x}"
+			echo
+
+		fi
+
+	fi
+
+done
+
+
+
+rm -r "$tmpbackupdir"
+if [ -d $tmpdir ]
+then
+	rm -r ${tmpdir:?}
+fi
 
 echo "${g}${b}Backup complete!${x}"
 echo
