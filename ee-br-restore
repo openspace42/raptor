@@ -57,6 +57,21 @@ fi
 
 
 
+echo "${b}Now installing easyengine...${x}"
+echo
+wget -qO ee rt.cx/ee
+bash ee || true
+rm ee
+source /etc/bash_completion.d/ee_auto.rc
+mkdir -p /var/www/
+chown -R www-data:www-data /var/www/
+# ee stack install
+echo
+echo "${b}Finished installing easyengine.${x}"
+echo
+
+
+
 # Source vars from config file
 
 . $installdir/config
@@ -307,11 +322,11 @@ else
 
 			trace "... backing up filesystem"
 
-			if [ -d "$restoresdir"/s3/ ]
-			then
-				rm -r ${restoresdir:?}/s3/
-			fi
-			duplicity "${DEST}" "$restoresdir"/s3/
+			#if [ -d "$restoresdir"/s3/ ]
+			#then
+			#	rm -r ${restoresdir:?}/s3/
+			#fi
+			## duplicity --force "${DEST}" "$restoresdir"/s3/ #debug
 
 			trace "Backup for local filesystem complete"
 			trace "------------------------------------"
@@ -591,34 +606,37 @@ for site in $wwwdir/*
 do
 	if [ -d "$site" ]
 	then
-		thissite="$(echo "$site" | sed "s|${wwwdir}/||")"
-		echo "${b}*] Now evaluating site | ${g}$thissite${x}${b} | ${x}"
-		echo
-		thissitedir="$tmpbackupdir/$thissite"
-		mkdir -p $thissitedir
-		wpconfigfile="$site/wp-config.php"
-		if [ -f $wpconfigfile ]
+		this_site="$(echo "$site" | sed "s|${wwwdir}/||")"
+		if [ ! $this_site = "22222" ] && [ ! $site = "html" ]
 		then
-			echo "${b}   Proceeding with ${l}wordpress${x}${b} site backup...${x}"
+			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
 			echo
-			WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
-			WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
-			WPDBPASS=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
-			/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $thissitedir/mysqldump.sql
-			cp $wpconfigfile $thissitedir/wp-config.php
-		else
-			echo "${b}   Proceeding with ${m}NON-wordpress${x}${b} site backup...${x}"
+			this_site_dir="$tmpbackupdir/$this_site"
+			mkdir -p $this_site_dir
+			wpconfigfile="$site/wp-config.php"
+			if [ -f $wpconfigfile ]
+			then
+				echo "${b}   Proceeding with ${l}wordpress${x}${b} site backup...${x}"
+				echo
+				WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
+				WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
+				WPDBPASS=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
+				/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $this_site_dir/mysqldump.sql
+				cp $wpconfigfile $this_site_dir/wp-config.php
+			else
+				echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site backup...${x}"
+				echo
+			fi
+			if [ -d $site/htdocs/ ]
+			then
+				rsync -aAXx $site/htdocs/ $this_site_dir/htdocs/
+			else
+				echo "${r}${b}   No | htdocs | subdirectory found for site | $this_site |. Skipping...${x}"
+				echo
+			fi
+			echo "${b}   Finished backup for | $this_site |.${x}"
 			echo
 		fi
-		if [ -d $site/htdocs/ ]
-		then
-			rsync -aAXx $site/htdocs/ $thissitedir/htdocs/
-		else
-			echo "${r}${b}   No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
-			echo
-		fi
-		echo "${b}Finished backup for | $thissite |.${x}"
-		echo
 	fi
 done
 echo "${g}${b}Finished backups for all sites.${x}"
@@ -632,7 +650,7 @@ echo
 cd $tmpdir
 
 # Give local backup a custom name so that it's clear it's the last one before a rollback in time
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname-last-backup-before-"$now"-restore.tar.bz2
+## tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname-last-backup-before-"$now"-restore.tar.bz2 #debug
 
 ### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
@@ -670,9 +688,9 @@ then
 else
         if [ $restoretype = "s3" ]
         then
-                restorefileloc=$restoresdir/s3/
+                restorefileloc=$restoresdir/s3
         else
-                restorefileloc="/root/$shortname-restore/"
+                restorefileloc="/root/$shortname-restore"
         fi
 fi
 
@@ -685,100 +703,105 @@ do
 	then
 
 		this_site="$(echo "$site" | sed "s|${restorefileloc}/||")"
-		echo "${b}*] Now evaluating site | ${g}$thissite${x}${b} | ${x}"
-		echo
-		www_site_dir="$wwwdir/$thissite"
 
-		echo $site #debug
-		echo $this_site #debug
-		echo $www_site_dir #debug
-
-		proceed=y
-
-		if [ -d $www_site_dir ]
+		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ]
 		then
 
-			echo "${r}${b}   This site already exists on this machine.${x}"
+			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
 			echo
-			read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
-			echo
-			if [[ ! $REPLY =~ ^[Nn]$ ]]
-			then
-				echo "${b}   Ok, proceeding...${x}"
-				echo
-				ee site delete $thissite --experimental
-			else
-				echo
-				echo "${b}   Ok, skipping...${x}"
-				echo
-				proceed=n
-			fi
-		fi
+			www_site_dir="$wwwdir/$this_site"
 
-		if [ $proceed = y ]
-		then
+			proceed=y
 
-			ee site create $thissite
-
-			### Test to see if site to be restored is a wordpress site and if it is restore it while replacing new database details
-
-			real_wp_config_file="$site/wp-config.php"
-			if [ -f $real_wp_config_file ]
+			if [ -d $www_site_dir ]
 			then
 
-				echo "${b}   Proceeding with ${l}wordpress${x}${b} site restore...${x}"
+				echo "${r}${b}   This site already exists on this machine.${x}"
 				echo
-
-				ee site update $thissite --wpfc
-
-				www_wp_config_file="$www_site_dir/wp-config.php"
-
-				www_WPDBNAME=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
-				www_WPDBUSER=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
-				www_WPDBPASS=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
-
-				old_WPDBNAME=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
-				old_WPDBUSER=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
-				old_WPDBPASS=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
-
-				mv "$www_wp_config_file" "$www_wp_config_file.pre-restore-original-file"
-				cp "$real_wp_config_file" "$www_wp_config_file"
-
-				sed -i "s|${old_WPDBNAME}|${www_WPDBNAME}|g" "$www_wp_config_file"
-				sed -i "s|${old_WPDBUSER}|${www_WPDBUSER}|g" "$www_wp_config_file"
-				sed -i "s|${old_WPDBPASS}|${www_WPDBPASS}|g" "$www_wp_config_file"
-
-				mysql -u"$www_WPDBUSER" -p"${www_WPDBPASS}" "${www_WPDBNAME}" < "$site/mysqldump.sql"
-
-			else
-
-				echo "${b}   Proceeding with ${m}NON-wordpress${x}${b} site restore...${x}"
-				echo
-				read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
+				read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
 				echo
 				if [[ ! $REPLY =~ ^[Nn]$ ]]
 				then
 					echo "${b}   Ok, proceeding...${x}"
 					echo
-					ee site update $thissite --php
+					ee site delete $this_site --no-prompt
 				else
 					echo
 					echo "${b}   Ok, skipping...${x}"
 					echo
+					proceed=n
+				fi
+			fi
+
+			if [ $proceed = y ]
+			then
+
+				ee site create $this_site
+				echo
+
+				### Test to see if site to be restored is a wordpress site and if it is restore it while replacing new database details
+
+				real_wp_config_file="$site/wp-config.php"
+				if [ -f $real_wp_config_file ]
+				then
+
+					echo "${b}   Proceeding with ${l}wordpress${x}${b} site restore...${x}"
+					echo
+
+					ee site update $this_site --wpfc
+					echo
+
+					www_wp_config_file="$www_site_dir/wp-config.php"
+
+					www_WPDBNAME=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+					www_WPDBUSER=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
+					www_WPDBPASS=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+					old_WPDBNAME=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+					old_WPDBUSER=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
+					old_WPDBPASS=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+					mv "$www_wp_config_file" "$www_wp_config_file.pre-restore-original-file"
+					cp "$real_wp_config_file" "$www_wp_config_file"
+
+					sed -i "s|${old_WPDBNAME}|${www_WPDBNAME}|g" "$www_wp_config_file"
+					sed -i "s|${old_WPDBUSER}|${www_WPDBUSER}|g" "$www_wp_config_file"
+					sed -i "s|${old_WPDBPASS}|${www_WPDBPASS}|g" "$www_wp_config_file"
+
+					mysql -u"$www_WPDBUSER" -p"${www_WPDBPASS}" "${www_WPDBNAME}" < "$site/mysqldump.sql"
+
+				else
+
+					echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site restore...${x}"
+					echo
+					read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
+					echo
+					if [[ ! $REPLY =~ ^[Nn]$ ]]
+					then
+						echo "${b}   Ok, proceeding...${x}"
+						echo
+						ee site update $this_site --php
+						echo
+					else
+						echo
+						echo "${b}   Ok, skipping...${x}"
+						echo
+					fi
+
 				fi
 
-			fi
+				if [ -d $site/htdocs/ ]
+				then
+					rsync -aAXx --delete "$site/htdocs" "$www_site_dir/htdocs"
+				else
+					echo "${r}${b}   No | htdocs | subdirectory found for site | $this_site |. Skipping...${x}"
+					echo
+				fi
 
-			if [ -d $site/htdocs/ ]
-			then
-				rsync -aAXx --delete "$site/htdocs" "$www_site_dir/htdocs"
-			else
-				echo "${r}${b}   No | htdocs | subdirectory found for site | $thissite |. Skipping...${x}"
+				echo "${b}   Finished backup for | $this_site |.${x}"
 				echo
-			fi
 
-			echo "${b}Finished backup for | $thissite |.${x}"
-			echo
+			fi
 
 		fi
 
