@@ -65,6 +65,8 @@ rm ee
 source /etc/bash_completion.d/ee_auto.rc
 mkdir -p /var/www/
 chown -R www-data:www-data /var/www/
+ufw allow 80
+ufw allow 443
 # ee stack install
 echo
 echo "${b}Finished installing easyengine.${x}"
@@ -597,11 +599,6 @@ fi
 
 
 
-echo "${b}Now backing up locally...${x}"
-echo
-
-
-
 for site in $wwwdir/*
 do
 	if [ -d "$site" ]
@@ -676,7 +673,7 @@ fi
 
 
 
-echo "${b}Now restoring $shortname from backup...${x}"
+echo "${b}Now restoring your old easyengine installation from backup...${x}"
 echo
 
 
@@ -792,7 +789,7 @@ do
 
 				if [ -d $site/htdocs/ ]
 				then
-					rsync -aAXx --delete "$site/htdocs" "$www_site_dir/htdocs"
+					rsync -aAXx --delete "$site/htdocs/" "$www_site_dir/htdocs/"
 				else
 					echo "${r}${b}   No | htdocs | subdirectory found for site | $this_site |. Skipping...${x}"
 					echo
@@ -817,5 +814,5 @@ then
 	rm -r ${tmpdir:?}
 fi
 
-echo "${g}${b}Backup complete!${x}"
+echo "${g}${b}Restore complete!${x}"
 echo
