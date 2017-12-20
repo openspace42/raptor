@@ -63,11 +63,14 @@ wget -qO ee rt.cx/ee
 bash ee || true
 rm ee
 source /etc/bash_completion.d/ee_auto.rc
+ee update
 mkdir -p /var/www/
 chown -R www-data:www-data /var/www/
 ufw allow 80
 ufw allow 443
-# ee stack install
+ufw allow 22222
+ee stack install -all
+( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
 echo
 echo "${b}Finished installing easyengine.${x}"
 echo

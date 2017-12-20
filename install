@@ -82,12 +82,14 @@ fi
 echo "${b}Initiating installer...${x}"
 echo
 
+
+
 echo "${b}Now installing dependencies...${x}"
 echo
 hostname="$(cat /etc/hostname)"
 apt-add-repository ppa:duplicity-team/ppa -y
 apt-get update
-apt-get -y install duplicity python-pip pwgen pv python-boto
+apt-get -y install duplicity python-pip pwgen pv python-boto composer
 pip install --upgrade pip
 pip install boto
 debconf-set-selections <<< "postfix postfix/mailname string $hostname"
@@ -97,6 +99,27 @@ apt-get install -y mailutils
 echo
 echo "${b}Finished installing dependencies.${x}"
 echo
+
+
+
+echo "${b}Now [re-]installing easyengine...${x}"
+echo
+wget -qO ee rt.cx/ee
+bash ee || true
+rm ee
+source /etc/bash_completion.d/ee_auto.rc
+ee update
+mkdir -p /var/www/
+chown -R www-data:www-data /var/www/
+ufw allow 80
+ufw allow 443
+ufw allow 22222
+ee stack install -all
+( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
+echo
+echo "${b}Finished installing easyengine.${x}"
+echo
+
 
 
 
