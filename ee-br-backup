@@ -231,7 +231,7 @@ do
 	if [ -d "$site" ]
 	then
 		this_site="$(echo "$site" | sed "s|${wwwdir}/||")"
-		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ]
+		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
 		then
 			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
 			echo

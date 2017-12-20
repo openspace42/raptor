@@ -331,7 +331,7 @@ else
 			#then
 			#	rm -r ${restoresdir:?}/s3/
 			#fi
-			## duplicity --force "${DEST}" "$restoresdir"/s3/ #debug
+			duplicity --force "${DEST}" "$restoresdir"/s3/
 
 			trace "Backup for local filesystem complete"
 			trace "------------------------------------"
@@ -650,7 +650,7 @@ echo
 cd $tmpdir
 
 # Give local backup a custom name so that it's clear it's the last one before a rollback in time
-## tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname-last-backup-before-"$now"-restore.tar.bz2 #debug
+tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archivedir/$backupname-last-backup-before-"$now"-restore.tar.bz2
 
 ### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
@@ -704,7 +704,7 @@ do
 
 		this_site="$(echo "$site" | sed "s|${restorefileloc}/||")"
 
-		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ]
+		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
 		then
 
 			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
