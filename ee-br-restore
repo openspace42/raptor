@@ -57,7 +57,7 @@ fi
 
 
 
-echo "${b}Now installing easyengine...${x}"
+echo "${b}Now [re-]installing and updating easyengine...${x}"
 echo
 wget -qO ee rt.cx/ee
 bash ee || true

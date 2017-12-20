@@ -102,7 +102,7 @@ echo
 
 
 
-echo "${b}Now [re-]installing easyengine...${x}"
+echo "${b}Now [re-]installing and updating easyengine...${x}"
 echo
 wget -qO ee rt.cx/ee
 bash ee || true
@@ -114,7 +114,7 @@ chown -R www-data:www-data /var/www/
 ufw allow 80
 ufw allow 443
 ufw allow 22222
-ee stack install -all
+ee stack install --all || true
 ( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
 echo
 echo "${b}Finished installing easyengine.${x}"
