@@ -327,11 +327,11 @@ else
 
 			trace "... backing up filesystem"
 
-			#if [ -d "$restoresdir"/s3/ ]
-			#then
-			#	rm -r ${restoresdir:?}/s3/
-			#fi
-			duplicity --force "${DEST}" "$restoresdir"/s3/
+			if [ -d "$restoresdir"/s3/ ]
+			then
+				rm -r ${restoresdir:?}/s3/
+			fi
+			duplicity "${DEST}" "$restoresdir"/s3/ >>$tmpdir/duplicity-log 2>&1
 
 			trace "Backup for local filesystem complete"
 			trace "------------------------------------"
@@ -339,20 +339,42 @@ else
 			# Append the daily log file to the main log file
 			cat "$DAILYLOGFILE" >> $LOGFILE
 
-			if [ ! -d "$restoresdir"/s3/ ]
+			if grep -q "No backup chains found" $tmpdir/duplicity-log
 			then
-			        echo "${r}${b}Restore from S3 failed.${x}"
-			        echo
-			        echo "${b}This is likely due to an incorrect passphrase [check the above error log for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
+
+				echo "${r}${b}Restore from S3 failed.${x}"
 				echo
-				echo "${b}Edit the file | $installdir/config | and replace the currently specified passphrase with the old one from your previous machine, then re-run this script.${x}"
-				echo
-				echo "${b}If you have lost your previous encryption passphrase, you've also lost access to your backups.${x}"
+				echo "${b}It appears there are no backups on the S3 server under the path: | $shortname/latest | [check the above error log for messages like: | ${r}No backup chains found${x}${b} |].${x}"
 				echo
 				echo "${b}Exiting...${x}"
-			        echo
-			        exit
+				echo
+				exit
+
+			else
+
+				if grep -q "gpg: decryption failed: bad key" $tmpdir/duplicity-log || [ ! -d "$restoresdir"/s3/ ]
+				then
+
+					echo "${r}${b}Restore from S3 failed.${x}"
+				        echo
+				        echo "${b}This is likely due to an incorrect passphrase [check the above error log for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
+					echo
+					echo "${b}Edit the file | $installdir/config | and replace the currently specified passphrase with the old one from your previous machine, then re-run this script.${x}"
+					echo
+					echo "${b}If you have lost your previous encryption passphrase, you've also lost access to your backups.${x}"
+					echo
+					echo "${b}Exiting...${x}"
+					echo
+					exit
+
+				fi
+
 			fi
+
+			# Reset the ENV variables. Don't need them sitting around
+			unset AWS_ACCESS_KEY_ID
+			unset AWS_SECRET_ACCESS_KEY
+			unset PASSPHRASE
 
 		fi
 
@@ -609,7 +631,7 @@ do
 		this_site="$(echo "$site" | sed "s|${wwwdir}/||")"
 		if [ ! $this_site = "22222" ] && [ ! $site = "html" ]
 		then
-			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
+			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
 			echo
 			this_site_dir="$tmpbackupdir/$this_site"
 			mkdir -p $this_site_dir
@@ -707,7 +729,7 @@ do
 		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
 		then
 
-			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} | ${x}"
+			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
 			echo
 			www_site_dir="$wwwdir/$this_site"
 
