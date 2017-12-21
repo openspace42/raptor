@@ -57,6 +57,18 @@ fi
 
 
 
+# Source vars from config file
+
+. $installdir/config
+
+
+
+# Purge temp and create directories
+
+mkdir -p $tmpdir
+
+
+
 echo "${b}Now [re-]installing and updating easyengine...${x}"
 echo
 wget -qO ee rt.cx/ee
@@ -64,6 +76,7 @@ bash ee || true
 rm ee
 source /etc/bash_completion.d/ee_auto.rc
 ee update
+rm /tmp/eeupdate*
 mkdir -p /var/www/
 chown -R www-data:www-data /var/www/
 ufw allow 80
@@ -74,12 +87,6 @@ ee stack install --all || true
 echo
 echo "${b}Finished installing easyengine.${x}"
 echo
-
-
-
-# Source vars from config file
-
-. $installdir/config
 
 
 
@@ -331,7 +338,7 @@ else
 			then
 				rm -r ${restoresdir:?}/s3/
 			fi
-			duplicity "${DEST}" "$restoresdir"/s3/ >>$tmpdir/duplicity-log 2>&1
+			duplicity "${DEST}" "$restoresdir"/s3/ >$tmpdir/duplicity-log 2>&1
 
 			trace "Backup for local filesystem complete"
 			trace "------------------------------------"
@@ -344,7 +351,7 @@ else
 
 				echo "${r}${b}Restore from S3 failed.${x}"
 				echo
-				echo "${b}It appears there are no backups on the S3 server under the path: | $shortname/latest | [check the above error log for messages like: | ${r}No backup chains found${x}${b} |].${x}"
+				echo "${b}It appears there are no backups on the S3 server under the path: | $shortname/latest | [check | $tmpdir/duplicity-log | for messages like: | ${r}No backup chains found${x}${b} |].${x}"
 				echo
 				echo "${b}Exiting...${x}"
 				echo

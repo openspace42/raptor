@@ -109,6 +109,7 @@ bash ee || true
 rm ee
 source /etc/bash_completion.d/ee_auto.rc
 ee update
+rm /tmp/eeupdate*
 mkdir -p /var/www/
 chown -R www-data:www-data /var/www/
 ufw allow 80

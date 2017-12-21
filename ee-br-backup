@@ -353,7 +353,7 @@ then
 
 		trace "... backing up filesystem"
 
-		duplicity --force "${DEST}" "$restoresdir"/s3/ >>$tmpdir/duplicity-log 2>&1
+		duplicity --force "${DEST}" "$restoresdir"/s3/ >$tmpdir/duplicity-log 2>&1
 
 		trace "Backup for local filesystem complete"
 		trace "------------------------------------"
@@ -376,7 +376,7 @@ then
 
 				echo "${r}${b}Testing restore from S3 failed.${x}"
 				echo
-				echo "${b}This is likely due to an incorrect passphrase [check the above error log for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
+				echo "${b}This is likely due to an incorrect passphrase [check | $tmpdir/duplicity-log | for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
 				echo
 				echo "${b}If this is the case, you've likely changed your backups encryption passphrase on this machine between your last backup and this one.${x}"
 				echo
