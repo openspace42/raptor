@@ -287,7 +287,6 @@ else
 		set +e
 
 		echo "${b}Now restoring from S3 to $restoresdir/s3/...${x}"
-		echo
 
 		duplicitylogdir=/root/logs/$shortname-duplicity
 		duplicityrestlogdir=$duplicitylogdir/restore
@@ -364,7 +363,7 @@ else
 
 					echo "${r}${b}Restore from S3 failed.${x}"
 				        echo
-				        echo "${b}This is likely due to an incorrect passphrase [check the above error log for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
+				        echo "${b}This is likely due to an incorrect passphrase [check | $tmpdir/duplicity-log | for messages like: | ${r}gpg: decryption failed: bad key${x}${b} |].${x}"
 					echo
 					echo "${b}Edit the file | $installdir/config | and replace the currently specified passphrase with the old one from your previous machine, then re-run this script.${x}"
 					echo
