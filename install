@@ -51,7 +51,7 @@ echo "${b}Now installing dependencies...${x}"
 echo
 hostname="$(cat /etc/hostname)"
 apt-get update
-apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common
+apt-get -y install duplicity python-pip pwgen pv python-boto ufw pwgen software-properties-common curl
 pip install --upgrade pip
 pip install boto
 debconf-set-selections <<< "postfix postfix/mailname string $hostname"
@@ -66,6 +66,7 @@ echo
 
 echo "${b}Now [re-]installing and updating easyengine...${x}"
 echo
+
 wget -qO ee rt.cx/ee
 bash ee || true
 rm ee
@@ -76,9 +77,19 @@ mkdir -p /var/www/
 chown -R www-data:www-data /var/www/
 ufw allow 80
 ufw allow 443
-ufw allow 22222
-ee stack install --all || true
-( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
+
+read -p "${b}Also install full EasyEngine stack and PhpMyAdmin? (Y/n): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]
+then
+	ufw allow 22222
+	ee stack install --all || true
+	apt-get install php5-cli || true
+	apt-get install php7.0-cli || true
+	( cd /usr/src && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer )
+	( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
+fi
+
 echo
 echo "${b}Finished installing easyengine.${x}"
 echo
