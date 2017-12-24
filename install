@@ -52,7 +52,7 @@ distro="$(lsb_release --id | cut -f2)"
 if [ $distro = "Ubuntu" ]
 then
 
-	echo "${g}{b}Detected Ubuntu distro. Proceeding with full install...${x}"
+	echo "${g}${b}Detected Ubuntu distro. Proceeding with full install...${x}"
 	echo
 
 	echo "${b}Now installing dependencies...${x}"
@@ -101,14 +101,14 @@ then
 
 else
 
-	echo "${g}{b}Detected NON-Ubuntu distro [mail notifications might not work]. Proceeding...${x}"
+	echo "${g}${b}Detected NON-Ubuntu distro [mail notifications might not work]. Proceeding...${x}"
 	echo
 
 	echo "${b}Now installing dependencies...${x}"
 	echo
 	hostname="$(cat /etc/hostname)"
 	apt-get update
-	apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common curl
+	apt-get -y install duplicity python-pip pwgen pv python-boto ufw pwgen software-properties-common curl
 	pip install --upgrade pip
 	pip install boto
 	debconf-set-selections <<< "postfix postfix/mailname string $hostname"
