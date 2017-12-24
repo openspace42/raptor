@@ -83,6 +83,11 @@ then
 	rm -r ${tmpdir:?}
 fi
 
+if [ -d "$latestdir" ]
+then
+	rm -r ${latestdir:?}
+fi
+
 if [ -d "$restoresdir/s3" ]
 then
 	rm -r ${restoresdir:?}/s3
@@ -283,10 +288,6 @@ echo
 if [ "$backuptype" = "s3" ]
 then
 
-	if [ -d $latestdir ]
-	then
-		rm -r ${latestdir:?}
-	fi
 	mv "$tmpbackupdir" "$latestdir"
 
 	# Export some ENV variables so you don't have to type anything
