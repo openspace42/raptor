@@ -50,6 +50,8 @@ echo
 echo "${b}Now installing dependencies...${x}"
 echo
 hostname="$(cat /etc/hostname)"
+apt-get update
+apt-get -y install software-properties-common
 apt-add-repository ppa:duplicity-team/ppa -y
 apt-get update
 apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen

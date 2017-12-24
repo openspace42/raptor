@@ -83,6 +83,11 @@ then
 	rm -r ${tmpdir:?}
 fi
 
+if [ -d "$restoresdir/s3" ]
+then
+	rm -r ${restoresdir:?}/s3
+fi
+
 mkdir -p $archivedir
 mkdir -p $latestdir
 mkdir -p $tmpdir
@@ -100,12 +105,7 @@ update_storage_info () {
 	then
 		est_backup_size=$(($ref_dir_size * 2))
 	else
-		if [ -d "$restoresdir"/s3 ]
-		then
-			est_backup_size=$(($ref_dir_size * 3))
-		else
-			est_backup_size=$(($ref_dir_size * 4))
-		fi
+		est_backup_size=$(($ref_dir_size * 3))
 	fi
 	local_archive_items="$(ls -1q $archivedir | wc -l)"
 	local_archive_size="$(du -sm $archivedir | xargs | sed "s|${archivedir}||g" | xargs)"
@@ -283,7 +283,11 @@ echo
 if [ "$backuptype" = "s3" ]
 then
 
-	rsync -aAXx "$tmpbackupdir"/* "$latestdir"/
+	if [ -d $latestdir ]
+	then
+		rm -r ${latestdir:?}
+	fi
+	mv "$tmpbackupdir" "$latestdir"
 
 	# Export some ENV variables so you don't have to type anything
 	export AWS_ACCESS_KEY_ID=$awsaki
@@ -540,9 +544,12 @@ then
 
 	fi
 
+else
+
+	rm -r "$tmpbackupdir"
+
 fi
 
-rm -r "$tmpbackupdir"
 if [ -d $tmpdir ]
 then
 	rm -r ${tmpdir:?}
