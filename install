@@ -92,7 +92,7 @@ then
 	then
 		ufw allow 22222
 		ee stack install --all || true
-		( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
+		#( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
 	fi
 
 	echo
