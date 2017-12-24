@@ -101,7 +101,7 @@ then
 
 else
 
-	echo "${g}${b}Detected NON-Ubuntu distro [mail notifications might not work]. Proceeding...${x}"
+	echo "${r}${b}Detected NON-Ubuntu distro [mail notifications might not work]. Proceeding...${x}"
 	echo
 
 	echo "${b}Now installing dependencies...${x}"
@@ -158,6 +158,7 @@ then
         	rsync -aAXx $sourcedir/ $installdir/ --exclude=config --exclude=install --exclude=README.md
 	fi
 else
+	mkdir -p $installdir
         rsync -aAXx $sourcedir/ $installdir/ --exclude=install --exclude=README.md
 fi
 echo "${b}Finished installing scripts.${x}"
