@@ -31,8 +31,10 @@ download_os_functions() {
 
 source_os_functions() {
 
-	base_dir=/root/openspace42
-	. $base_dir/bash_functions/*
+	for f in /root/openspace42/bash_functions/*
+	do
+		. $f
+	done
 
 }
 
@@ -43,14 +45,15 @@ define_vars() {
 	# Define variables. Don't change these! | No trailing slash!
 
 	proj_name="EasyEngine-Backup-Restore"
+	short_name="ee-br"
 	source_dir=/root/$proj_name
 	base_dir=/root/openspace42
-	install_dir=$base_dir/ee-br
+	install_dir=$base_dir/$short_name
 	backups_dir=$install_dir/backups
 	archive_dir=$backups_dir/archive
 	latest_dir=$backups_dir/latest
 	restores_dir=$install_dir/restores
-	tmp_dir=/tmp/ee-br
+	tmp_dir=/tmp/$short_name
 	www_dir=/var/www
 
 }
@@ -486,14 +489,14 @@ restore_from_here() {
 
 restore_from_standalone() {
 
-	echo "${b}Ok, restoring from a standalone $shortname backup file.${x}"
+	echo "${b}Ok, restoring from a standalone $short_name backup file.${x}"
 	echo
-	if [ -d "/root/$shortname-restore/" ]
+	if [ -d "/root/$short_name-restore/" ]
 	then
-		rm -r "/root/$shortname-restore/"
+		rm -r "/root/$short_name-restore/"
 	fi
-	mkdir -p "/root/$shortname-restore/"
-	read -p "${b}Do you have a file called | $shortname-backup-[date].tar.bz2 | [or similar]? (Y/n): ${x}" -n 1 -r
+	mkdir -p "/root/$short_name-restore/"
+	read -p "${b}Do you have a file called | $short_name-backup-[date].tar.bz2 | [or similar]? (Y/n): ${x}" -n 1 -r
 	echo
 	if [[ ! $REPLY =~ ^[Nn]$ ]]
 	then
@@ -558,18 +561,18 @@ restore_from_standalone() {
 		done
 		echo "${b}Backup file $standalonebackupfile selected.${x}"
 		echo
-		tar -xvjf "$standalonebackupfile" -C "/root/$shortname-restore/"
-		subdir=("/root/$shortname-restore/"*/)
-		restoresubdir="$(echo "$subdir" | sed "s|/root/${shortname}-restore/||" | tr -d '/')"
-		mv "/root/$shortname-restore/$restoresubdir"/* "/root/$shortname-restore/"
-		rm -r "/root/$shortname-restore/$restoresubdir"
+		tar -xvjf "$standalonebackupfile" -C "/root/$short_name-restore/"
+		subdir=("/root/$short_name-restore/"*/)
+		restoresubdir="$(echo "$subdir" | sed "s|/root/${short_name}-restore/||" | tr -d '/')"
+		mv "/root/$short_name-restore/$restoresubdir"/* "/root/$short_name-restore/"
+		rm -r "/root/$short_name-restore/$restoresubdir"
 	else
-		echo "${b}Ok, no problem. Make sure you populate the | /root/$shortname-restore/ | directory with these 4 files/directories from your standalone backup:${x}"
+		echo "${b}Ok, no problem. Make sure you populate the | /root/$short_name-restore/ | directory with these 4 files/directories from your standalone backup:${x}"
 		echo
-		echo "${b}1] /root/$shortname-restore/config${x}"
-		echo "${b}2] /root/$shortname-restore/ejabberd-mnesia-backup${x}"
-		echo "${b}3] /root/$shortname-restore/etc-ejabberd${x}"
-		echo "${b}4] /root/$shortname-restore/var-lib-ejabberd${x}"
+		echo "${b}1] /root/$short_name-restore/config${x}"
+		echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
+		echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
+		echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
 		echo
 		echo "${r}${b}If you don't correctly place all 4 files/directories, the restore will not work correctly [you will be alerted if something is wrong further along this script]${x}"
 		echo
@@ -594,7 +597,7 @@ duplicity_loop() {
 	#GPG_KEY= # Insert GPG key here if using GPG
 
 	# The S3 destination followed by bucket name
-	DEST="s3://$s3endpoint/$s3bucketname/$shortname/latest/"
+	DEST="s3://$s3endpoint/$s3bucketname/$short_name/latest/"
 
 	HOST=$(hostname)
 	DATE=$(date +%Y-%m-%d)
@@ -609,7 +612,7 @@ duplicity_loop() {
         fi
 
 
-        duplicity_base_dir=/root/logs/$shortname-duplicity
+        duplicity_base_dir=/root/logs/$short_name-duplicity
 	duplicity_log_dir=$duplicity_base_dir/$duplicity_type
 
         # Set up some variables for logging
@@ -797,7 +800,7 @@ restore_from_S3() {
 			# No backups found on server, something's wrong.
 			echo "${r}${b}Restore from S3 failed.${x}"
 			echo
-			echo "${b}It appears there are no backups on the S3 server under the path: | $shortname/latest | [check | $tmp_dir/duplicity-log | for messages like: | ${r}No backup chains found${x}${b} |].${x}"
+			echo "${b}It appears there are no backups on the S3 server under the path: | $short_name/latest | [check | $tmp_dir/duplicity-log | for messages like: | ${r}No backup chains found${x}${b} |].${x}"
 			echo
 			echo "${b}Exiting...${x}"
 			echo

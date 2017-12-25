@@ -36,8 +36,6 @@ check_config_file
 
 . $install_dir/config
 
-echo
-
 ################################################################################
 
 purge_and_create_dirs

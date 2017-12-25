@@ -36,8 +36,6 @@ check_config_file
 
 . $install_dir/config
 
-echo
-
 ################################################################################
 
 install_easyengine
@@ -83,8 +81,9 @@ else
         then
                 echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
                 echo
-                choice="${b}Do you want to restore from S3 or from a standalone $shortname backup file you have stored individually? ${x}"
+                choice="${b}Do you want to restore from S3 or from a standalone $short_name backup file you have stored individually? ${x}"
                 echo "$choice"
+		echo
                 options=("S3" "standalone" "exit")
                 select opt in "${options[@]}"
                 do
@@ -132,7 +131,7 @@ echo
 
 ### Perform a [last] backup of this currently running installation just in case
 
-echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $shortname installation just in case...${x}"
+echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
 echo
 
 purge_and_create_dirs
@@ -184,7 +183,7 @@ else
         then
                 restorefileloc=$restores_dir/s3
         else
-                restorefileloc="/root/$shortname-restore"
+                restorefileloc="/root/$short_name-restore"
         fi
 fi
 
