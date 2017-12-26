@@ -321,12 +321,18 @@ purge_and_create_dirs() {
 		rm -r ${restores_dir:?}/s3
 	fi
 
-	mkdir -p $archive_dir
-	mkdir -p $latest_dir
+	if [ "${1:-null}" = "backup" ]
+	then
+
+		mkdir -p $archive_dir
+		mkdir -p $latest_dir
+		backupname=$scriptname-$now
+		tmpbackupdir=$tmp_dir/$backupname
+		mkdir -p "$tmpbackupdir"
+
+	fi
+
 	mkdir -p $tmp_dir
-	backupname=$scriptname-$now
-	tmpbackupdir=$tmp_dir/$backupname
-	mkdir -p "$tmpbackupdir"
 
 }
 

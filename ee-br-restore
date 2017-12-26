@@ -40,7 +40,7 @@ check_config_file
 
 install_easyengine
 
-purge_and_create_dirs
+purge_and_create_dirs restore
 
 ################################################################################
 
