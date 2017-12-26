@@ -64,7 +64,7 @@ echo
 if [ "$backuptype" = "s3" ]
 then
 
-	mv "$tmpbackupdir" "$latest_dir"
+	mv "$tmpbackupdir"/* "$latest_dir"
 
 	########################################################################
 

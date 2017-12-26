@@ -140,7 +140,7 @@ update_storage_info noS3
 
 purge_backups
 
-back_up_locally
+backup_locally
 
 echo "${b}Now compressing backup...${x}"
 echo

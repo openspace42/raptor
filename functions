@@ -616,9 +616,9 @@ duplicity_loop() {
 	duplicity_log_dir=$duplicity_base_dir/$duplicity_type
 
         # Set up some variables for logging
-	LOGFILE="$duplicity_log_dir/duplicity_type.log"
-	DAILYLOGFILE="$duplicity_log_dir/duplicity_type.daily.log"
-	FULLBACKLOGFILE="$duplicity_log_dir/duplicity_type.full.log"
+	LOGFILE="$duplicity_log_dir/$duplicity_type.log"
+	DAILYLOGFILE="$duplicity_log_dir/$duplicity_type.daily.log"
+	FULLBACKLOGFILE="$duplicity_log_dir/$duplicity_type.full.log"
 
         is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
 
