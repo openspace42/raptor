@@ -38,6 +38,8 @@ check_config_file
 
 ################################################################################
 
+purge_incomplete_archives
+
 purge_dirs
 
 create_dirs backup

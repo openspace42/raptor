@@ -340,6 +340,15 @@ create_dirs() {
 
 }
 
+purge_incomplete_archives() {
+
+	for i in "$(find $archive_dir -name "*.incomplete" -type f)"
+	do
+		rm ${i:?}
+	done
+
+}
+
 backup_locally() {
 
 	echo "${b}Now backing up locally...${x}"
