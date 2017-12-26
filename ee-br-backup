@@ -38,7 +38,9 @@ check_config_file
 
 ################################################################################
 
-purge_and_create_dirs backup
+purge_dirs
+
+create_dirs backup
 
 update_storage_info
 

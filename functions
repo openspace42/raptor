@@ -302,7 +302,7 @@ purge_backups() {
 
 }
 
-purge_and_create_dirs() {
+purge_dirs() {
 
 	# Purge temp and create directories
 
@@ -320,6 +320,10 @@ purge_and_create_dirs() {
 	then
 		rm -r ${restores_dir:?}/s3
 	fi
+
+}
+
+create_dirs() {
 
 	if [ "${1:-null}" = "backup" ]
 	then
@@ -573,6 +577,7 @@ restore_from_standalone() {
 		mv "/root/$short_name-restore/$restoresubdir"/* "/root/$short_name-restore/"
 		rm -r "/root/$short_name-restore/$restoresubdir"
 	else
+		echo
 		echo "${b}Ok, no problem. Make sure you populate the | /root/$short_name-restore/ | directory with these 4 files/directories from your standalone backup:${x}"
 		echo
 		echo "${b}1] /root/$short_name-restore/config${x}"

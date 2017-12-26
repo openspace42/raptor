@@ -40,7 +40,9 @@ check_config_file
 
 install_easyengine
 
-purge_and_create_dirs restore
+purge_dirs
+
+create_dirs restore
 
 ################################################################################
 
@@ -135,6 +137,8 @@ echo
 
 echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
 echo
+
+create_dirs backup
 
 update_storage_info noS3
 
