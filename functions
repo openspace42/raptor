@@ -660,6 +660,8 @@ duplicity_loop() {
 
                 trace "Backup for local filesystem started"
 
+		set +e
+
                 if [ "${1:-null}" = "backup" ]
                 then
 
@@ -690,6 +692,8 @@ duplicity_loop() {
                 else
                         duplicity "${DEST}" "$restores_dir"/s3/ >$tmp_dir/duplicity-log 2>&1
                 fi
+
+		set -e
 
                 trace "Backup for local filesystem complete"
                 trace "------------------------------------"
@@ -782,8 +786,10 @@ restore_from_S3() {
 	if [ "${1:-null}" = "test" ]
 	then
 		echo "${b}Now testing restore from S3 to $restores_dir/s3/ to ensure existing backups integrity and passphrase match...${x}"
+		echo
 	else
 		echo "${b}Now restoring from S3 to $restores_dir/s3/...${x}"
+		echo
 	fi
 
 	duplicity_loop restore
@@ -794,7 +800,7 @@ restore_from_S3() {
 		if [ "${1:-null}" = "test" ]
 		then
 			# This is the first backup, all is good.
-			echo "${b}First S3 backup detected...${x}"
+			echo "${b}First S3 backup detected. Skipping restore test...${x}"
 			echo
 		else
 			# No backups found on server, something's wrong.
