@@ -153,7 +153,9 @@ cd $tmp_dir
 
 ### Tar.bz2 this backup archive. Give local backup a custom name so that it's clear it's the last one before a rollback in time
 
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
+tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete
+
+mv $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
 
 ### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
