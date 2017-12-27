@@ -166,7 +166,6 @@ install_easyengine() {
 		ufw allow 443
 		echo
 
-		echo
 		echo "${b}Finished installing easyengine.${x}"
 		echo
 
@@ -224,6 +223,19 @@ purge_loop () {
 		echo
 		echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
 		echo
+
+		if [ -d "$archive_dir"/old ]
+		then
+
+			old_dir_size="$(du -sm "$archive_dir"/old | xargs | sed -e "s|"${archive_dir}/old"||g" | xargs)"
+
+			echo "${b}Found | $archive_dir/old | directory weighing | $old_dir_size |.${x}"
+			echo
+			echo "${b}Consider freeing up space by removing these old backups if unneeded.${x}"
+			echo
+
+		fi
+
 		# Send email indicating backup aborted
 		echo "${b}Exiting...${x}"
 		echo
@@ -408,6 +420,20 @@ restore_from_here() {
                 echo
                 exit
         fi
+
+	count="$(ls -1 $archive_dir/*.tar.bz2 2>/dev/null | wc -l)"
+	if [ $count = 0 ]
+	then
+		echo "${r}${b}No backup archives found in local backups directory [$archive_dir].${x}"
+		echo
+		echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
+		echo
+		echo "${b}Check your $install_dir for a directory called | backups(-[something]) | and if you find something rename the most recently datestamped directory to | backups | ."
+		echo
+		echo "${b}Exiting...${x}"
+		echo
+		exit
+	fi
 
         echo "${b}These are the backup dates available for restore:${x}"
         echo
@@ -807,6 +833,11 @@ restore_from_S3() {
 		echo "${b}Now restoring from S3 to $restores_dir/s3/...${x}"
 		echo
 	fi
+
+	echo "${b}This is going to take some time, especially if this is your first restore on this machine.${x}"
+	echo
+	echo "${b}Please let the process run, it won't print any output until its done.${x}"
+	echo
 
 	duplicity_loop restore
 

@@ -38,7 +38,40 @@ check_config_file
 
 ################################################################################
 
-install_easyengine
+if [[ ! "${@#--skip-ee-install}" = "$@" ]]
+then
+	echo "${r}${b}Not [re-]installing EasyEngine as per | --skip-ee-install |...${x}"
+	echo
+	skip_ee_install=y
+fi
+
+if [[ ! "${@#--delete-existing}" = "$@" ]]
+then
+	echo "${r}${b}Deleting any already existing site to restore without asking as per | --delete-existing |...${x}"
+	echo
+	non_interactive_deletion=y
+fi
+
+if [[ ! "${@#--enable-php=y}" = "$@" ]]
+then
+	echo "${b}Activating PHP on any NON wordpress site to restore without asking as per | --enable-php=y |...${x}"
+	echo
+	non_interactive_php=y
+elif [[ ! "${@#--enable-php=n}" = "$@" ]]
+then
+	echo "${b}NOT activating PHP on any NON wordpress site to restore without asking as per | --enable-php=n |...${x}"
+	echo
+	non_interactive_php=n
+fi
+
+################################################################################
+
+if [ ! "${skip_ee_install:-null}" = "y" ]
+then
+	install_easyengine
+fi
+
+purge_incomplete_archives
 
 purge_dirs
 
@@ -222,18 +255,28 @@ do
 
 				echo "${r}${b}   This site already exists on this machine.${x}"
 				echo
-				read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
-				echo
-				if [[ ! $REPLY =~ ^[Nn]$ ]]
+
+				if [ "${non_interactive_deletion:-null}" = "y" ]
 				then
-					echo "${b}   Ok, proceeding...${x}"
+					echo "${b}   Deleting site and re-creating it restoring its respective backup...${x}"
 					echo
 					ee site delete $this_site --no-prompt
 				else
+
+					read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
 					echo
-					echo "${b}   Ok, skipping...${x}"
-					echo
-					proceed=n
+					if [[ ! $REPLY =~ ^[Nn]$ ]]
+					then
+						echo "${b}   Ok, proceeding...${x}"
+						echo
+						ee site delete $this_site --no-prompt
+					else
+						echo
+						echo "${b}   Ok, skipping...${x}"
+						echo
+						proceed=n
+					fi
+
 				fi
 			fi
 
@@ -278,23 +321,40 @@ do
 
 					echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site restore...${x}"
 					echo
-					read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
-					echo
-					if [[ ! $REPLY =~ ^[Nn]$ ]]
+
+					if [ "${non_interactive_php:-null}" = "y" ]
 					then
-						echo "${b}   Ok, proceeding...${x}"
+
+						echo "${b}   Activating PHP on this site...${x}"
 						echo
 						ee site update $this_site --php
+
+					elif [ "${non_interactive_php:-null}" = "n" ]
+					then
+						echo "${b}   NOT activating PHP on this site...${x}"
 						echo
+
 					else
+
+						read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
 						echo
-						echo "${b}   Ok, skipping...${x}"
-						echo
+						if [[ ! $REPLY =~ ^[Nn]$ ]]
+						then
+							echo "${b}   Ok, proceeding...${x}"
+							echo
+							ee site update $this_site --php
+							echo
+						else
+							echo
+							echo "${b}   Ok, skipping...${x}"
+							echo
+						fi
+
 					fi
 
 				fi
 
-					rsync -aAXx --delete "$site" "$www_site_dir"
+				rsync -aAXx --delete "$site"/ "$www_site_dir"
 
 				echo "${b}   Finished restore for | $this_site |.${x}"
 				echo
