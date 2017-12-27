@@ -377,7 +377,7 @@ backup_locally() {
 					echo
 				fi
 
-					rsync -aAXx --exclude backup conf logs "$site" "$this_site_dir"
+				rsync -aAXx --exclude backup --exclude conf --exclude logs "$site"/ "$this_site_dir"
 
 				echo "${b}   Finished backup for | $this_site |.${x}"
 				echo
