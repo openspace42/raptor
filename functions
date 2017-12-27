@@ -379,13 +379,9 @@ backup_locally() {
 					echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site backup...${x}"
 					echo
 				fi
-				if [ -d $site/htdocs/ ]
-				then
-					rsync -aAXx $site/htdocs/ $this_site_dir/htdocs/
-				else
-					echo "${r}${b}   No | htdocs | subdirectory found for site | $this_site |. Skipping...${x}"
-					echo
-				fi
+
+					rsync -aAXx --exclude backup conf logs "$site" "$this_site_dir"
+
 				echo "${b}   Finished backup for | $this_site |.${x}"
 				echo
 			fi

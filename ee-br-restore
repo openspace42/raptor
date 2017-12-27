@@ -294,15 +294,9 @@ do
 
 				fi
 
-				if [ -d $site/htdocs/ ]
-				then
-					rsync -aAXx --delete "$site/htdocs/" "$www_site_dir/htdocs/"
-				else
-					echo "${r}${b}   No | htdocs | subdirectory found for site | $this_site |. Skipping...${x}"
-					echo
-				fi
+					rsync -aAXx --delete "$site" "$www_site_dir"
 
-				echo "${b}   Finished backup for | $this_site |.${x}"
+				echo "${b}   Finished restore for | $this_site |.${x}"
 				echo
 
 			fi
