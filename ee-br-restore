@@ -125,11 +125,11 @@ else
         else
 
 		restore_from_standalone
+		echo
 
         fi
 
 fi
-echo
 
 ################################################################################
 
@@ -157,20 +157,27 @@ tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip
 
 mv $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
 
+echo
+
 ### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
 if [ $restoresource = "here" ]
 then
+
         echo "${b}Backed up current installation to $archive_dir.${x}"
         echo
+
 else
+
 	mkdir -p "$backups_dir"/old
         mv "$archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
-	if [ ! $duplicity_log_dir = "null" ]
+
+	if [ ! -z "${duplicity_log_dir-}" ];
 	then
 		mkdir -p "$duplicity_log_dir"/old
 	        mv "$duplicity_log_dir"/backup/ "$duplicity_log_dir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
 	fi
+
         echo "${b}Backed up current installation to local backups directory and moved the latter to $backups_dir/old/archive-old-before-$now-restore.${x}"
         echo
 fi
