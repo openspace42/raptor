@@ -342,10 +342,7 @@ create_dirs() {
 
 purge_incomplete_archives() {
 
-	for i in "$(find $archive_dir -name "*.incomplete" -type f)"
-	do
-		rm ${i:?}
-	done
+	find $archive_dir -type f -name '*.incomplete' -delete
 
 }
 
