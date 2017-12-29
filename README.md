@@ -45,19 +45,15 @@ bash openspace42/ee-br/ee-br-backup
 cat logs/ee-br-backup/latest-log
 ```
 
-### Restore from backup
-
-```
-bash openspace42/ee-br/ee-br-restore
-```
-
 ## Restoring
 
-### If this is a new machine
+### Preparation [only if this is a new machine]
 
 1. Run the installer as detailed above in the "Install" section
 2. Edit the `openspace42/ee-br/config` file to ensure your backup/restore method is correct [local / s3] and if necessary specify your backup passphrase.
-3. Run the command:
+
+### Actually restoring
+
 ```
 bash openspace42/ee-br/ee-br-restore
 ```
