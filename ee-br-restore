@@ -337,7 +337,7 @@ do
 					old_WPDBUSER=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
 					old_WPDBPASS=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
 
-					mv "$www_wp_config_file" "$www_wp_config_file.pre-restore-original-file"
+					rm "$www_wp_config_file"
 					cp "$real_wp_config_file" "$www_wp_config_file"
 
 					sed -i "s|${old_WPDBNAME}|${www_WPDBNAME}|g" "$www_wp_config_file"
@@ -385,7 +385,7 @@ do
 
 				fi
 
-				rsync -aAXx --exclude wp-config.php "$site"/ "$www_site_dir"
+				rsync -aAXx --exclude wp-config.php --exclude mysqldump.sql "$site"/ "$www_site_dir"
 
 				if [ "${non_interactive_le:-null}" = "y" ]
 				then
