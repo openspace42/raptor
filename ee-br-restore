@@ -45,6 +45,13 @@ then
 	skip_ee_install=y
 fi
 
+if [[ ! "${@#--skip-backup}" = "$@" ]]
+then
+	echo "${r}${b}Skipping current sites backup as per | --skip-backup |...${x}"
+	echo
+	skip_backup=y
+fi
+
 if [[ ! "${@#--delete-existing}" = "$@" ]]
 then
 	echo "${r}${b}Deleting any already existing site to restore without asking as per | --delete-existing |...${x}"
@@ -166,53 +173,58 @@ fi
 
 ################################################################################
 
-### Perform a [last] backup of this currently running installation just in case
-
-echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
-echo
-
-create_dirs backup
-
-update_storage_info noS3
-
-purge_backups
-
-backup_locally
-
-echo "${b}Now compressing backup...${x}"
-echo
-
-cd $tmp_dir
-
-### Tar.bz2 this backup archive. Give local backup a custom name so that it's clear it's the last one before a rollback in time
-
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete
-
-mv $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
-
-echo
-
-### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
-
-if [ $restoresource = "here" ]
+if [ ! "${skip_backup:-null}" = "y" ]
 then
 
-        echo "${b}Backed up current installation to $archive_dir.${x}"
-        echo
+	### Perform a [last] backup of this currently running installation just in case
 
-else
+	echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
+	echo
 
-	mkdir -p "$backups_dir"/old
-        mv "$archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
+	create_dirs backup
 
-	if [ ! -z "${duplicity_log_dir-}" ];
+	update_storage_info noS3
+
+	purge_backups
+
+	backup_locally
+
+	echo "${b}Now compressing backup...${x}"
+	echo
+
+	cd $tmp_dir
+
+	### Tar.bz2 this backup archive. Give local backup a custom name so that it's clear it's the last one before a rollback in time
+
+	tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete
+
+	mv $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
+
+	echo
+
+	### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
+
+	if [ $restoresource = "here" ]
 	then
-		mkdir -p "$duplicity_log_dir"/old
-	        mv "$duplicity_log_dir"/backup/ "$duplicity_log_dir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
+
+	        echo "${b}Backed up current installation to $archive_dir.${x}"
+	        echo
+
+	else
+
+		mkdir -p "$backups_dir"/old
+	        mv "$archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
+
+		if [ ! -z "${duplicity_log_dir-}" ]
+		then
+			mkdir -p "$duplicity_log_dir"/old
+		        mv "$duplicity_log_dir"/backup/ "$duplicity_log_dir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
+		fi
+
+	        echo "${b}Backed up current installation to local backups directory and moved the latter to $backups_dir/old/archive-old-before-$now-restore.${x}"
+	        echo
 	fi
 
-        echo "${b}Backed up current installation to local backups directory and moved the latter to $backups_dir/old/archive-old-before-$now-restore.${x}"
-        echo
 fi
 
 ################################################################################
@@ -354,7 +366,7 @@ do
 
 				fi
 
-				rsync -aAXx --delete "$site"/ "$www_site_dir"
+				rsync -aAXx --exclude wp-config.php "$site"/ "$www_site_dir"
 
 				echo "${b}   Finished restore for | $this_site |.${x}"
 				echo
@@ -367,11 +379,7 @@ do
 
 done
 
-rm -r "$tmpbackupdir"
-if [ -d $tmp_dir ]
-then
-	rm -r ${tmp_dir:?}
-fi
+purge_dirs
 
 echo "${g}${b}Restore complete!${x}"
 echo
