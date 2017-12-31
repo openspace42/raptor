@@ -71,17 +71,17 @@ then
 	non_interactive_php=n
 fi
 
-if [[ ! "${@#--activate_le=y}" = "$@" ]]
+if [[ ! "${@#--activate-le=y}" = "$@" ]]
 then
 	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=y |...${x}"
 	echo
 	non_interactive_le=y
-elif [[ ! "${@#--activate_le=o}" = "$@" ]]
+elif [[ ! "${@#--activate-le=o}" = "$@" ]]
 then
 	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | --enable-php=o |...${x}"
 	echo
 	non_interactive_le=o
-elif [[ ! "${@#--activate_le=n}" = "$@" ]]
+elif [[ ! "${@#--activate-le=n}" = "$@" ]]
 then
 	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=n |...${x}"
 	echo
