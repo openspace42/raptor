@@ -49,11 +49,11 @@ then
 	then
 		echo "${r}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
 	        echo
-		rsync -aAXx $source_dir/ $install_dir/ --exclude=install --exclude=README.md
+		rsync -aAXx $source_dir/ $install_dir/ --exclude=setup --exclude=install --exclude=README.md
 	else
 		echo "${b}Preserving old | config | file...${x}"
 		echo
-        	rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=install --exclude=README.md
+        	rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md
 	fi
 else
 	mkdir -p $install_dir
@@ -79,7 +79,7 @@ echo
 echo "${b}Now saving current version...${x}"
 echo
 curr_vers="$(grep 'refs/tags/' $script_dir/.git/packed-refs | awk '{print $2}' | sed "s|refs/tags/v||g")"
-echo "$curr_vers" > "$conf_dir"/install_complete
+echo "$curr_vers" > "$conf_dir"/installed_version
 echo "${b}Finished saving current version.${x}"
 echo
 

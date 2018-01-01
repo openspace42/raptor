@@ -11,4 +11,18 @@ echo
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-( cd $script_dir && git checkout tags/v0.0.1 && bash ./install )
+short_name="ee-br"
+base_dir=/root/openspace42
+install_dir=$base_dir/$short_name
+conf_dir=$install_dir/conf
+
+if [ -f $conf_dir/beta ]
+then
+        echo "${r}${b}Installing bleeding-edge version of $short_name up to latest git commit.${x}"
+        echo
+        echo "${b}[delete the | $conf_dir/beta | file to cancel your opt-in to beta versions]${x}"
+        echo
+        bash ./install
+else
+	( cd $script_dir && git checkout tags/v0.0.1 && bash ./install )
+fi
