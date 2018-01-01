@@ -14,6 +14,17 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 check_root
 
+if [[ "${@#--return-check}" = "$@" ]]
+then
+        echo "${r}${b}This script must not be run directly.${x}"
+	echo
+        echo "${b}You should instead run the "setup" script and it will take care of the installation itself.${x}"
+	echo
+        echo "${b}Exiting...${x}"
+        echo
+        exit
+fi
+
 ################################################################################
 
 # Download and source openspace functions file

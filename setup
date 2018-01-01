@@ -21,7 +21,7 @@ then
         echo "Installing bleeding-edge version of $short_name up to latest git commit."
         echo
         echo "[delete the | $conf_dir/beta | file to cancel your opt-in to beta versions]"
-        ( cd $script_dir && bash ./install )
+        ( cd $script_dir && bash ./install --return-check )
 else
-	( cd $script_dir && git checkout tags/v0.0.1 && bash ./install )
+	( cd $script_dir && git checkout tags/v0.0.1 && bash ./install --return-check )
 fi
