@@ -49,6 +49,7 @@ define_vars() {
 	source_dir=/root/$proj_name
 	base_dir=/root/openspace42
 	install_dir=$base_dir/$short_name
+	conf_dir=$install_dir/conf
 	backups_dir=$install_dir/backups
 	archive_dir=$backups_dir/archive
 	latest_dir=$backups_dir/latest

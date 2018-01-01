@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Set bash environment error management
+
+set -e
+set -u
+
+################################################################################
+
+git checkout tags/v0.0.1
+
+bash ./install
