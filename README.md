@@ -16,14 +16,16 @@
 * Returns **detailed errors in case of failure** to help you get your data back during a restore
 
 
-## Install [or update / re-install] on Ubuntu 16
+## Install [or update / re-install] [tested on Debian 8 and Ubuntu 16]
+
+Current version: v0.0.1 [2018-01-01]
 
 ```
 apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/openspace42/EasyEngine-Backup-Restore
+git clone https://github.com/openspace42/EasyEngine-Backup-Restore --branch v0.0.1
 bash EasyEngine-Backup-Restore/install
 ```
 ```
