@@ -25,8 +25,8 @@ apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/openspace42/EasyEngine-Backup-Restore --branch v0.0.1
-bash EasyEngine-Backup-Restore/install
+git clone https://github.com/openspace42/EasyEngine-Backup-Restore
+bash EasyEngine-Backup-Restore/setup
 ```
 ```
 nano openspace42/ee-br/config
