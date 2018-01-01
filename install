@@ -27,7 +27,7 @@ os-define_formatting
 
 define_vars
 
-mkdir $conf_dir
+mkdir -p $conf_dir
 
 echo
 
