@@ -7,6 +7,6 @@ set -u
 
 ################################################################################
 
-git checkout tags/v0.0.1
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-bash ./install
+( cd $source_dir && git checkout tags/v0.0.1 && bash ./install )
