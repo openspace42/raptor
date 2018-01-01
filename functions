@@ -397,8 +397,10 @@ backup_locally() {
 				echo "${b}   Finished backup for | $this_site |.${x}"
 				echo
 			else
-				echo "${b}*] Site | ${r}$this_site${x}${b} | is on exclusion list. Skipping... ${x}"
+				echo "${b}*] Site | ${r}$this_site${x}${b} | is on the exclusion list.${x}"
                                 echo
+				echo "${b}   Skipping...${x}"
+				echo
 			fi
 		fi
 	done
