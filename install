@@ -37,7 +37,7 @@ if [[ "${@#--return-check}" = "$@" ]]
 then
         echo "${r}${b}This script must not be run directly.${x}"
 	echo
-        echo "${b}You should instead run the "setup" script and it will take care of the installation itself.${x}"
+        echo "${b}You should instead run the | ${x}${g}${b}setup${x}${b} | script and it will take care of the installation itself.${x}"
 	echo
         echo "${b}Exiting...${x}"
         echo

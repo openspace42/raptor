@@ -18,9 +18,13 @@ conf_dir=$install_dir/conf
 
 if [ -f $conf_dir/beta ]
 then
+        echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
+	echo
         echo "Installing bleeding-edge version of $short_name up to latest git commit."
         echo
         echo "[delete the | $conf_dir/beta | file to cancel your opt-in to beta versions]"
+        echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
+	echo
         ( cd $script_dir && bash ./install --return-check )
 else
 	( cd $script_dir && git checkout tags/v0.0.1 && bash ./install --return-check )
