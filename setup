@@ -9,6 +9,6 @@ set -u
 
 echo
 
-source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-( cd $source_dir && git checkout tags/v0.0.1 && bash ./install )
+( cd $script_dir && git checkout tags/v0.0.1 && bash ./install )
