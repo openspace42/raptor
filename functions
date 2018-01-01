@@ -371,7 +371,7 @@ backup_locally() {
 		if [ -d "$site" ]
 		then
 			this_site="$(echo "$site" | sed "s|${www_dir}/||")"
-			if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
+			if [ "${backup_exclude_sites/$this_site}" = "$backup_exclude_sites" ]
 			then
 				echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
 				echo
@@ -396,6 +396,9 @@ backup_locally() {
 
 				echo "${b}   Finished backup for | $this_site |.${x}"
 				echo
+			else
+				echo "${b}*] Site | ${r}$this_site${x}${b} | is on exclusion list. Skipping... ${x}"
+                                echo
 			fi
 		fi
 	done

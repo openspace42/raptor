@@ -34,5 +34,14 @@ s3endpoint="s3.amazonaws.com"
 s3bucketname="easyengine"
 
 ################################################################################
+
+### Exclude sites from backup
+
+#### Comma-space separated list of websites to exclude.
+#### Example: backup_exclude_sites="22222, html, roundcubemail, example.org, hello.world, site-to.exclude.tld"
+
+backup_exclude_sites="22222, html, roundcubemail"
+
+################################################################################
 ############################## Config section end ##############################
 ###############################################################################=
