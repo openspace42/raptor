@@ -27,6 +27,8 @@ os-define_formatting
 
 define_vars
 
+mkdir $config_dir
+
 echo
 
 ################################################################################
