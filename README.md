@@ -2,7 +2,9 @@
 
 ## Video overview [11 minutes]
 
-[![EasyEngine-Backup-Restore youtube video](https://img.youtube.com/vi/sw3FsBWHj9M/0.jpg)](https://www.youtube.com/watch?v=sw3FsBWHj9M)
+[![EasyEngine-Backup-Restore youtube video](https://img.youtube.com/vi/sw3FsBWHj9M/maxresdefault.jpg)](https://www.youtube.com/watch?v=sw3FsBWHj9M)
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=sw3FsBWHj9M" target="_blank"><img src="http://img.youtube.com/vi/sw3FsBWHj9M/maxresdefault.jpg" alt="EasyEngine-Backup-Restore youtube video" width="457" height="257" border="10" /></a>
 
 ## Features
 
