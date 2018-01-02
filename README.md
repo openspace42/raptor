@@ -1,5 +1,7 @@
 # EasyEngine-Backup-Restore
 
+[![EasyEngine-Backup-Restore youtube video](https://img.youtube.com/vi/sw3FsBWHj9M/0.jpg)](https://www.youtube.com/watch?v=sw3FsBWHj9M)
+
 ## Features
 
 * **One touch, three minute install**
