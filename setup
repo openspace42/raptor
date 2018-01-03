@@ -7,8 +7,17 @@ set -u
 
 ################################################################################
 
+### Define current version
+
+curr_vers=0.0.2
+
+#latest_vers="$(grep 'refs/tags/' $script_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
+
+################################################################################
+
 echo
 
+now="$(date +"%Y-%m-%d_%H-%M-%S")"
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 short_name="ee-br"
@@ -26,6 +35,8 @@ then
         echo
         echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
         ( cd $script_dir && bash ./install --return-check )
+        echo "bleeding_edge $now" > "$conf_dir"/installed_version
 else
-	( cd $script_dir && git checkout tags/v0.0.2 && bash ./install --return-check )
+	( cd $script_dir && git checkout tags/v$curr_vers && bash ./install --return-check )
+        echo "$curr_vers" > "$conf_dir"/installed_version
 fi
