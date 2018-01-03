@@ -1,9 +1,5 @@
 # EasyEngine-Backup-Restore
 
-## Video overview [11 minutes]
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=sw3FsBWHj9M" target="_blank"><img src="http://img.youtube.com/vi/sw3FsBWHj9M/maxresdefault.jpg" alt="EasyEngine-Backup-Restore youtube video" width="457" height="257" border="10" /></a>
-
 ## Features
 
 * **One touch, three minute install**
@@ -29,6 +25,7 @@ apt update
 apt -y install git
 ```
 ```
+cd
 git clone https://github.com/openspace42/EasyEngine-Backup-Restore
 bash EasyEngine-Backup-Restore/setup
 ```

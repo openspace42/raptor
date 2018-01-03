@@ -641,6 +641,7 @@ do
 						echo "${g}${b}   Activating LetsEncrypt for $this_site...${x}"
 						echo
 						ee site update $this_site --le --experimental || true
+						echo
 					else
 						echo "${r}${b}   One or more DNS checks for $this_site failed and was skipped.${x}"
 						echo
