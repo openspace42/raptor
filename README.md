@@ -18,7 +18,7 @@
 
 ## Install [or update / re-install] [tested on Debian 8 and Ubuntu 16]
 
-Current version: v0.0.1 [2018-01-01]
+Current version: v0.0.2 [2018-01-03]
 
 ```
 apt update
