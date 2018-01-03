@@ -14,6 +14,7 @@
 * Performs a test restore before every backup to **ensure remote backup integrity and passphrase match**
 * Actually [re-]installs and updates EasyEngine on install and restore operations to remove any extra step: you'll be fully operational with just one command
 * Returns **detailed errors in case of failure** to help you get your data back during a restore
+* Outputs clean and colorful logs and stores them automatically inside its own log directory
 
 
 ## Install [or update / re-install] [tested on Debian 8 and Ubuntu 16]
@@ -21,11 +22,15 @@
 Current version: v0.0.2 [2018-01-03]
 
 ```
+[log in as root on your EasyEngine linux server]
+cd
+```
+
+```
 apt update
 apt -y install git
 ```
 ```
-cd
 git clone https://github.com/openspace42/EasyEngine-Backup-Restore
 bash EasyEngine-Backup-Restore/setup
 ```
