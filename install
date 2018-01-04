@@ -83,7 +83,7 @@ touch /etc/cron.daily/ee-br-backup
 chmod 755 /etc/cron.daily/ee-br-backup
 echo -e '#!/bin/bash' > /etc/cron.daily/ee-br-backup
 echo >> /etc/cron.daily/ee-br-backup
-echo "bash $install_dir/ee-br-backup" >> /etc/cron.daily/ee-br-backup
+echo "cronic bash $install_dir/ee-br-backup" >> /etc/cron.daily/ee-br-backup
 echo "${b}Finished adding backup script to daily crontab...${x}"
 echo
 

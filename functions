@@ -94,7 +94,7 @@ install_easyengine() {
 		hostname="$(cat /etc/hostname)"
 		apt-add-repository ppa:duplicity-team/ppa -y
 		apt-get update
-		apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common curl
+		apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common curl cronic
 		pip install --upgrade pip
 		pip install boto
 		debconf-set-selections <<< "postfix postfix/mailname string $hostname"
