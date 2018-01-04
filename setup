@@ -7,18 +7,13 @@ set -u
 
 ################################################################################
 
-### Define current version
-
-curr_vers=0.0.2
-
-#latest_vers="$(grep 'refs/tags/' $script_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
-
-################################################################################
-
 echo
 
 now="$(date +"%Y-%m-%d_%H-%M-%S")"
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+### Define latest version
+latest_vers="$(grep 'refs/tags/' $script_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
 
 short_name="ee-br"
 base_dir=/root/openspace42
