@@ -32,6 +32,6 @@ then
         ( cd $script_dir && bash ./install --return-check )
         echo "bleeding_edge $now" > "$conf_dir"/installed_version
 else
-	( cd $script_dir && git checkout tags/v$curr_vers && bash ./install --return-check )
-        echo "$curr_vers" > "$conf_dir"/installed_version
+	( cd $script_dir && git checkout tags/v$latest_vers && bash ./install --return-check )
+        echo "$latest_vers" > "$conf_dir"/installed_version
 fi
