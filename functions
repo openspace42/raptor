@@ -10,7 +10,7 @@ check_root() {
 		echo
 	        echo "${b}Exiting...${x}"
 	        echo
-	        exit
+	        exit 1
 	fi
 
 }
@@ -71,10 +71,9 @@ check_config_file() {
 		echo
 		echo "${b}If instead you've moved it to another location, simply move it back to | $install_dir |.${x}"
 		echo
-		# Send email indicating backup aborted
 	        echo "${b}Exiting...${x}"
 	        echo
-	        exit
+	        exit 1
 	fi
 
 }
@@ -207,7 +206,7 @@ purge_loop () {
 		if [ $counter = 0 ]
 		then
 			echo "${r}${b}Infinite loop error caught. Exiting...${b}"
-			exit
+			exit 1
 		fi
 
 		if [ $local_archive_items -gt $counter ]
@@ -237,10 +236,9 @@ purge_loop () {
 
 		fi
 
-		# Send email indicating backup aborted
 		echo "${b}Exiting...${x}"
 		echo
-		exit
+		exit 1
 
 	fi
 
@@ -424,7 +422,7 @@ restore_from_here() {
                 echo
                 echo "${b}Exiting...${x}"
                 echo
-                exit
+                exit 1
         fi
 
 	count="$(ls -1 $archive_dir/*.tar.bz2 2>/dev/null | wc -l)"
@@ -438,7 +436,7 @@ restore_from_here() {
 		echo
 		echo "${b}Exiting...${x}"
 		echo
-		exit
+		exit 1
 	fi
 
         echo "${b}These are the backup dates available for restore:${x}"
@@ -863,7 +861,7 @@ restore_from_S3() {
 			echo
 			echo "${b}Exiting...${x}"
 			echo
-			exit
+			exit 1
 		fi
 
 	else
@@ -889,7 +887,7 @@ restore_from_S3() {
 				echo
 				echo "${b}Exiting...${x}"
 				echo
-				exit
+				exit 1
 			else
 				echo "${r}${b}Restore from S3 failed.${x}"
 				echo
@@ -901,7 +899,7 @@ restore_from_S3() {
 				echo
 				echo "${b}Exiting...${x}"
 				echo
-				exit
+				exit 1
 			fi
 
 		else
