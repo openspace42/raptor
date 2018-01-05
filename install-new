@@ -49,7 +49,7 @@ fi
 echo "${b}Initiating installer...${x}"
 echo
 
-install_easyengine
+#install_easyengine #debug
 
 echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
 echo
@@ -62,7 +62,7 @@ else
 	mkdir -p $install_dir
 fi
 
-rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md
+# rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md #debug
 
 echo "${b}Finished installing scripts.${x}"
 echo
