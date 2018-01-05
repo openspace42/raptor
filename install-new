@@ -87,7 +87,7 @@ echo
 
 echo "${b}Now removing installer directory...${x}"
 echo
-rm -r $source_dir
+# rm -r $source_dir #debug
 echo "${b}Finished removing installer directory.${x}"
 echo
 
