@@ -67,13 +67,7 @@ fi
 echo "${b}Finished installing scripts.${x}"
 echo
 
-describe_setting() {
-
-        echo description
-
-}
-
-os-set_option -o admin_mail -v n -d y
+os-set_admin_email
 
 
 
