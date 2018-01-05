@@ -69,6 +69,8 @@ echo
 
 os-set_admin_email
 
+os-setup_backup_restore
+
 
 
 echo "${b}Now adding backup script to daily crontab...${x}"
