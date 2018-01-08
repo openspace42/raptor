@@ -32,10 +32,7 @@ apt -y install git
 git clone https://github.com/openspace42/EasyEngine-Backup-Restore
 bash EasyEngine-Backup-Restore/setup
 ```
-```
-nano openspace42/ee-br/config
-# [specify your backup settings unless previously done]
-```
+
 
 ## Backing up
 
@@ -56,7 +53,6 @@ cat logs/ee-br-backup/latest-log
 ### Preparation [only if this is a new machine]
 
 1. Run the installer as detailed above in the "Install" section
-2. Edit the `openspace42/ee-br/config` file to ensure your backup/restore method is correct [local / s3] and if necessary specify your backup passphrase.
 
 ### Actually restoring
 
