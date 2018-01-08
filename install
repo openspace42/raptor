@@ -86,7 +86,7 @@ os-set_option -o backup_exclude_sites -v n -d y -s backups/local
 
 
 
-os-add_cron_job -n ee-br-backup -c "bash /root/openspace42/ee-br/ee-br-backup"
+os-add_cron_job -n ee-br-backup -t "8 4 * * * " -c "bash /root/openspace42/ee-br/ee-br-backup"
 
 
 

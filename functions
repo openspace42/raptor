@@ -631,9 +631,9 @@ restore_from_standalone() {
 duplicity_loop() {
 
 	# Export some ENV variables so you don't have to type anything
-	export AWS_ACCESS_KEY_ID=$awsaki
-	export AWS_SECRET_ACCESS_KEY=$awssak
-	export PASSPHRASE=$backupspw
+	export AWS_ACCESS_KEY_ID=$s3_access_key_id
+	export AWS_SECRET_ACCESS_KEY=$s3_secret_access_key
+	export PASSPHRASE=$backups_passphrase
 
 	# Your GPG key
 	#GPG_KEY= # Insert GPG key here if using GPG
@@ -788,7 +788,7 @@ backup_to_S3() {
 		echo
 
 		encrypt() {
-			gpg --output  /$tmp_dir/$@ --passphrase "$backupspw" --symmetric -z 9 --require-secmem --cipher-algo AES256 --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count 65000000 --compress-algo BZIP2 $@
+			gpg --output  /$tmp_dir/$@ --passphrase "$backups_passphrase" --symmetric -z 9 --require-secmem --cipher-algo AES256 --s2k-cipher-algo AES256 --s2k-digest-algo SHA512 --s2k-mode 3 --s2k-count 65000000 --compress-algo BZIP2 $@
 		}
 
 		decrypt() {
