@@ -57,20 +57,20 @@ cd $tmp_dir
 
 ### Tar.bz2 this backup archive.
 
-tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname.tar.bz2.incomplete
+tar cSf - $backup_name -P | pv -s $(du -sb $backup_name | awk '{print $1}') | bzip2 > $backups_archive_dir/$backup_name.tar.bz2.incomplete
 
-mv $archive_dir/$backupname.tar.bz2.incomplete $archive_dir/$backupname.tar.bz2
+mv $backups_archive_dir/$backup_name.tar.bz2.incomplete $backups_archive_dir/$backup_name.tar.bz2
 
 echo
-echo "${g}${b}Finished compressing backup and stored in | $archive_dir/ | ${x}"
+echo "${g}${b}Finished compressing backup and stored in | $backups_archive_dir/ | ${x}"
 echo
 
 ################################################################################
 
-if [ "$backuptype" = "s3" ]
+if [ "$backup_location" = "s3" ]
 then
 
-	mv "$tmpbackupdir"/* "$latest_dir"
+	mv "$tmpbackupdir"/* "$backups_latest_dir"
 
 	########################################################################
 

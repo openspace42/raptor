@@ -172,15 +172,15 @@ update_storage_info () {
 	free_disk_space="$(df -m --output=avail / | xargs | sed -e 's/Avail //g')"
 	ref_dir_size="$(du -sm "$www_dir" | xargs | sed -e "s|"${www_dir}"||g" | xargs)"
 
-	if [ "${1:-null}" = "noS3" ] || [ "$backuptype" = "local" ]
+	if [ "${1:-null}" = "noS3" ] || [ "$backup_location" = "local" ]
 	then
 		est_backup_size=$(($ref_dir_size * 2))
 	else
 		est_backup_size=$(($ref_dir_size * 3))
 	fi
 
-	local_archive_items="$(ls -1q $archive_dir | wc -l)"
-	local_archive_size="$(du -sm $archive_dir | xargs | sed "s|${archive_dir}||g" | xargs)"
+	local_archive_items="$(ls -1q $backups_archive_dir | wc -l)"
+	local_archive_size="$(du -sm $backups_archive_dir | xargs | sed "s|${backups_archive_dir}||g" | xargs)"
 
 }
 
@@ -204,7 +204,7 @@ purge_loop () {
 		if [ $local_archive_items -gt $counter ]
 		then
 			tailnumber=$(( $counter + 1 ))
-			( cd $archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+			( cd $backups_archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
 		fi
 
 		update_storage_info
@@ -216,12 +216,12 @@ purge_loop () {
 		echo "${b}Lower this figure in the | config | file or make more space available on this machine.${x}"
 		echo
 
-		if [ -d "$archive_dir"/old ]
+		if [ -d "$backups_archive_dir"/old ]
 		then
 
-			old_dir_size="$(du -sm "$archive_dir"/old | xargs | sed -e "s|"${archive_dir}/old"||g" | xargs)"
+			old_dir_size="$(du -sm "$backups_archive_dir"/old | xargs | sed -e "s|"${backups_archive_dir}/old"||g" | xargs)"
 
-			echo "${b}Found | $archive_dir/old | directory weighing | $old_dir_size |.${x}"
+			echo "${b}Found | $backups_archive_dir/old | directory weighing | $old_dir_size |.${x}"
 			echo
 			echo "${b}Consider freeing up space by removing these old backups if unneeded.${x}"
 			echo
@@ -242,11 +242,11 @@ purge_backups() {
 
 	### Purge backups older than the latest $max_local_backups
 
-	local_archive_items="$(ls -1q $archive_dir | wc -l)"
+	local_archive_items="$(ls -1q $backups_archive_dir | wc -l)"
 	if [ $local_archive_items -gt $max_local_backups ]
 	then
 	        tailnumber=$(( $max_local_backups + 1 ))
-	        ( cd $archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+	        ( cd $backups_archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
 		update_storage_info
 	fi
 
@@ -314,9 +314,9 @@ purge_dirs() {
 		rm -r ${tmp_dir:?}
 	fi
 
-	if [ -d "$latest_dir" ]
+	if [ -d "$backups_latest_dir" ]
 	then
-		rm -r ${latest_dir:?}
+		rm -r ${backups_latest_dir:?}
 	fi
 
 	if [ -d "$restores_dir/s3" ]
@@ -331,8 +331,8 @@ create_dirs() {
 	if [ "${1:-null}" = "backup" ]
 	then
 
-		mkdir -p $archive_dir
-		mkdir -p $latest_dir
+		mkdir -p $backups_archive_dir
+		mkdir -p $backups_latest_dir
 		backupname=$scriptname-$now
 		tmpbackupdir=$tmp_dir/$backupname
 		mkdir -p "$tmpbackupdir"
@@ -345,9 +345,9 @@ create_dirs() {
 
 purge_incomplete_archives() {
 
-	if [ -d $archive_dir ]
+	if [ -d $backups_archive_dir ]
 	then
-		find $archive_dir -type f -name '*.incomplete' -delete
+		find $backups_archive_dir -type f -name '*.incomplete' -delete
 	fi
 
 }
@@ -404,9 +404,9 @@ backup_locally() {
 
 restore_from_here() {
 
-	if [ ! -d $archive_dir ]
+	if [ ! -d $backups_archive_dir ]
         then
-                echo "${r}${b}Local backups directory [$archive_dir] not found.${x}"
+                echo "${r}${b}Local backups directory [$backups_archive_dir] not found.${x}"
                 echo
                 echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
                 echo
@@ -417,10 +417,10 @@ restore_from_here() {
                 exit 1
         fi
 
-	count="$(ls -1 $archive_dir/*.tar.bz2 2>/dev/null | wc -l)"
+	count="$(ls -1 $backups_archive_dir/*.tar.bz2 2>/dev/null | wc -l)"
 	if [ $count = 0 ]
 	then
-		echo "${r}${b}No backup archives found in local backups directory [$archive_dir].${x}"
+		echo "${r}${b}No backup archives found in local backups directory [$backups_archive_dir].${x}"
 		echo
 		echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
 		echo
@@ -433,7 +433,7 @@ restore_from_here() {
 
         echo "${b}These are the backup dates available for restore:${x}"
         echo
-        ls -1 "$archive_dir" | sed -e 's/ee-br-backup-//g' | sed -e 's/.tar.bz2//g'
+        ls -1 "$backups_archive_dir" | sed -e 's/ee-br-backup-//g' | sed -e 's/.tar.bz2//g'
         echo
         read -rp "${b}[press enter to continue...]${x}"
         clear
@@ -444,7 +444,7 @@ restore_from_here() {
 
 	set +u
 
-        cd $archive_dir
+        cd $backups_archive_dir
         unset options i
         while IFS= read -r -d $'\n' f; do
                 options[i++]="$f"
@@ -685,7 +685,7 @@ duplicity_loop() {
                 then
 
                         # The source of your backup
-                        SOURCE=$latest_dir/ # Use / for full system backup [not the case for $scriptname]
+                        SOURCE=$backups_latest_dir/ # Use / for full system backup [not the case for $scriptname]
 
                 fi
 
@@ -780,7 +780,7 @@ backup_to_S3() {
 
 	if [ $today_day_of_month = "1" ] && [ $interactive = "n" ]
 	then
-		echo "${b}Now copying $archive_dir/$backupname.tar.bz2 to S3 as well."
+		echo "${b}Now copying $backups_archive_dir/$backupname.tar.bz2 to S3 as well."
 		echo
 
 		encrypt() {
@@ -810,7 +810,7 @@ backup_to_S3() {
 			"https://$bucket.s3.amazonaws.com$aws_path$file"
 		}
 
-		( cd $archive_dir && encrypt $backupname.tar.bz2 )
+		( cd $backups_archive_dir && encrypt $backupname.tar.bz2 )
 		putS3 /$tmp_dir/ $backupname.tar.bz2 /ee-br/archive/
 
 	fi

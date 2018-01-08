@@ -49,49 +49,37 @@ fi
 echo "${b}Initiating installer...${x}"
 echo
 
-install_easyengine
+#install_easyengine #debug
 
 echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
 echo
+
 if [ -d $install_dir ]
 then
-        now="$(date +"%Y-%m-%d_%H-%M-%S")"
         echo "${g}${b}Found existing installation.${x}"
         echo
-	if [ ! -f $install_dir/config ]
-	then
-		echo "${r}${b} | config | file NOT found in existing installation. Creating a new one now...${x}"
-	        echo
-		rsync -aAXx $source_dir/ $install_dir/ --exclude=setup --exclude=install --exclude=README.md
-	else
-		echo "${b}Preserving old | config | file...${x}"
-		echo
-        	rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md
-	fi
 else
 	mkdir -p $install_dir
-        rsync -aAXx $source_dir/ $install_dir/ --exclude=install --exclude=README.md
 fi
+
+# rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md #debug
+
 echo "${b}Finished installing scripts.${x}"
 echo
 
+os-set_admin_email
+
+os-setup_backup_restore
 
 
-echo "${b}Now adding backup script to daily crontab...${x}"
-echo
-touch /etc/cron.daily/ee-br-backup
-chmod 755 /etc/cron.daily/ee-br-backup
-echo -e '#!/bin/bash' > /etc/cron.daily/ee-br-backup
-echo >> /etc/cron.daily/ee-br-backup
-echo "cronic bash $install_dir/ee-br-backup" >> /etc/cron.daily/ee-br-backup
-echo "${b}Finished adding backup script to daily crontab...${x}"
-echo
+
+os-add_cron_job -n ee-br-backup -c "bash /root/openspace42/ee-br/ee-br-backup"
 
 
 
 echo "${b}Now removing installer directory...${x}"
 echo
-rm -r $source_dir
+# rm -r $source_dir #debug
 echo "${b}Finished removing installer directory.${x}"
 echo
 
