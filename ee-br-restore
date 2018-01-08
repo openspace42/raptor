@@ -110,11 +110,11 @@ do
     echo
     case $opt in
 	"backup file stored locally")
-	    restoresource=here
+	    restore_source=here
 	    break
 	    ;;
 	"backup file stored elsewhere")
-	    restoresource=elsewhere
+	    restore_source=elsewhere
 	    break
 	    ;;
 	"exit")
@@ -129,14 +129,14 @@ do
     esac
 done
 
-if [ $restoresource = "here" ]
+if [ $restore_source = "here" ]
 then
 
 	restore_from_here
 
 else
 
-        if [ "$backuptype" = "s3" ]
+        if [ "$backup_location" = "s3" ]
         then
                 echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
                 echo
@@ -149,11 +149,11 @@ else
                     echo
                     case $opt in
                         "S3")
-                            restoretype=s3
+                            restore_type=s3
                             break
                             ;;
                         "standalone")
-                            restoretype=standalone
+                            restore_type=standalone
                             break
                             ;;
                         "exit")
@@ -167,12 +167,12 @@ else
                     esac
                 done
         else
-                restoretype=standalone
+                restore_type=standalone
         fi
 
 
 
-        if [ $restoretype = "s3" ]
+        if [ $restore_type = "s3" ]
         then
 
 		restore_from_S3
@@ -211,24 +211,24 @@ then
 
 	### Tar.bz2 this backup archive. Give local backup a custom name so that it's clear it's the last one before a rollback in time
 
-	tar cSf - $backupname -P | pv -s $(du -sb $backupname | awk '{print $1}') | bzip2 > $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete
+	tar cSf - $backup_name -P | pv -s $(du -sb $backup_name | awk '{print $1}') | bzip2 > $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2.incomplete
 
-	mv $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2.incomplete $archive_dir/$backupname-last-backup-before-"$now"-restore.tar.bz2
+	mv $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2.incomplete $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2
 
 	echo
 
 	### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
-	if [ $restoresource = "here" ]
+	if [ $restore_source = "here" ]
 	then
 
-	        echo "${b}Backed up current installation to $archive_dir.${x}"
+	        echo "${b}Backed up current installation to $backups_archive_dir.${x}"
 	        echo
 
 	else
 
 		mkdir -p "$backups_dir"/old
-	        mv "$archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
+	        mv "$backups_archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
 
 		if [ ! -z "${duplicity_log_dir-}" ]
 		then
@@ -247,26 +247,26 @@ fi
 echo "${b}Now restoring your old easyengine installation from backup...${x}"
 echo
 
-if [ $restoresource = "here" ]
+if [ $restore_source = "here" ]
 then
         restore_file_name="$(echo "$sel_backup_file" | sed 's|./||g' | sed 's/-last-backup.*-restore//' | sed 's/.tar.bz2//g')"
-        restorefileloc=$restores_dir/local/$restore_file_name
+        restore_file_path=$restores_dir/local/$restore_file_name
 else
-        if [ $restoretype = "s3" ]
+        if [ $restore_type = "s3" ]
         then
-                restorefileloc=$restores_dir/s3
+                restore_file_path=$restores_dir/s3
         else
-                restorefileloc="/root/$short_name-restore"
+                restore_file_path="/root/$short_name-restore"
         fi
 fi
 
-for site in $restorefileloc/*
+for site in $restore_file_path/*
 do
 
 	if [ -d "$site" ]
 	then
 
-		this_site="$(echo "$site" | sed "s|${restorefileloc}/||")"
+		this_site="$(echo "$site" | sed "s|${restore_file_path}/||")"
 
 		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
 		then

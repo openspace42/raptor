@@ -49,7 +49,7 @@ fi
 echo "${b}Initiating installer...${x}"
 echo
 
-#install_easyengine #debug
+install_easyengine
 
 echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
 echo
@@ -62,7 +62,7 @@ else
 	mkdir -p $install_dir
 fi
 
-rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md
+rsync -aAXx $source_dir/ $install_dir/ --include=ee-br-backup --include=ee-br-restore --include=functions --exclude="*"
 
 echo "${b}Finished installing scripts.${x}"
 echo
@@ -92,7 +92,7 @@ os-add_cron_job -n ee-br-backup -t "8 4 * * * " -c "bash /root/openspace42/ee-br
 
 echo "${b}Now removing installer directory...${x}"
 echo
-# rm -r $source_dir #debug
+rm -r $source_dir
 echo "${b}Finished removing installer directory.${x}"
 echo
 
