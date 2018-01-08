@@ -73,7 +73,7 @@ os-setup_backup_restore
 
 
 
-os-add_cron_job -n ee-br-backup -c bash /root/openspace42/ee-br/ee-br-backup
+os-add_cron_job -n ee-br-backup -c "bash /root/openspace42/ee-br/ee-br-backup"
 
 
 
