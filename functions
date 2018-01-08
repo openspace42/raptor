@@ -334,8 +334,8 @@ create_dirs() {
 		mkdir -p $backups_archive_dir
 		mkdir -p $backups_latest_dir
 		backupname=$scriptname-$now
-		tmpbackupdir=$tmp_dir/$backupname
-		mkdir -p "$tmpbackupdir"
+		tmp_backup_dir=$tmp_dir/$backupname
+		mkdir -p "$tmp_backup_dir"
 
 	fi
 
@@ -370,7 +370,7 @@ backup_locally() {
 			then
 				echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
 				echo
-				this_site_dir="$tmpbackupdir/$this_site"
+				this_site_dir="$tmp_backup_dir/$this_site"
 				mkdir -p $this_site_dir
 				wpconfigfile="$site/wp-config.php"
 				if [ -f $wpconfigfile ]
