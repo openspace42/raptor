@@ -30,8 +30,6 @@ os-define_formatting
 
 define_vars
 
-check_config_file
-
 os-read_conf_settings
 
 ################################################################################
