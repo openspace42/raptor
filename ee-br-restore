@@ -32,9 +32,7 @@ define_vars
 
 check_config_file
 
-# Source vars from config file
-
-. $install_dir/config
+os-read_conf_settings
 
 ################################################################################
 
