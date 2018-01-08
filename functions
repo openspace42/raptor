@@ -333,8 +333,8 @@ create_dirs() {
 
 		mkdir -p $backups_archive_dir
 		mkdir -p $backups_latest_dir
-		backupname=$scriptname-$now
-		tmp_backup_dir=$tmp_dir/$backupname
+		backup_name=$scriptname-$now
+		tmp_backup_dir=$tmp_dir/$backup_name
 		mkdir -p "$tmp_backup_dir"
 
 	fi
@@ -784,7 +784,7 @@ backup_to_S3() {
 
 	if [ $today_day_of_month = "1" ] && [ $interactive = "n" ]
 	then
-		echo "${b}Now copying $backups_archive_dir/$backupname.tar.bz2 to S3 as well."
+		echo "${b}Now copying $backups_archive_dir/$backup_name.tar.bz2 to S3 as well."
 		echo
 
 		encrypt() {
@@ -814,8 +814,8 @@ backup_to_S3() {
 			"https://$bucket.s3.amazonaws.com$aws_path$file"
 		}
 
-		( cd $backups_archive_dir && encrypt $backupname.tar.bz2 )
-		putS3 /$tmp_dir/ $backupname.tar.bz2 /ee-br/archive/
+		( cd $backups_archive_dir && encrypt $backup_name.tar.bz2 )
+		putS3 /$tmp_dir/ $backup_name.tar.bz2 /ee-br/archive/
 
 	fi
 
