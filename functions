@@ -357,6 +357,10 @@ backup_locally() {
 	echo "${b}Now backing up locally...${x}"
 	echo
 
+	### Add hardcoded sites to exclude to the user-specified ones
+
+	backup_exclude_sites="22222, html, roundcubemail, $backup_exclude_sites"
+
 	for site in $www_dir/*
 	do
 		if [ -d "$site" ]

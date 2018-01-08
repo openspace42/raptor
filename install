@@ -71,6 +71,19 @@ os-set_admin_email
 
 os-setup_backup_restore
 
+describe_setting() {
+
+	echo "${b}Please specify any sites to exclude from your backups.${x}"
+	echo
+	echo "${b}Type in a comma separated list of websites to exclude.${x}"
+	echo
+        echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
+	echo
+
+}
+
+os-set_option -o backup_exclude_sites -v n -d y -s backups/local
+
 
 
 os-add_cron_job -n ee-br-backup -c "bash /root/openspace42/ee-br/ee-br-backup"
