@@ -79,6 +79,8 @@ describe_setting() {
 	echo
         echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
 	echo
+        echo "${b}Enter | null | to skip excluding any site.${x}"
+	echo
 
 }
 
