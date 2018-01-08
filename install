@@ -62,7 +62,7 @@ else
 	mkdir -p $install_dir
 fi
 
-# rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md #debug
+rsync -aAXx $source_dir/ $install_dir/ --exclude=config --exclude=setup --exclude=install --exclude=README.md
 
 echo "${b}Finished installing scripts.${x}"
 echo
