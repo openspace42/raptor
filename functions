@@ -708,7 +708,7 @@ duplicity_loop() {
                 then
 
                         # How long to keep backups for
-                        OLDER_THAN="$dup_min_history"
+                        OLDER_THAN="$duplicity_min_history"
 
                         trace "... removing old backups"
 
