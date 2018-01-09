@@ -42,8 +42,6 @@ source_os_functions() {
 
 define_vars() {
 
-	# Define variables. Don't change these! | No trailing slash!
-
 	proj_name="EasyEngine-Backup-Restore"
 	short_name="ee-br"
 
@@ -88,13 +86,20 @@ install_easyengine() {
 		apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common curl cronic
 		pip install --upgrade pip
 		pip install boto
-		debconf-set-selections <<< "postfix postfix/mailname string $hostname"
-		debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-		apt-get install -y mailutils
-		/etc/init.d/postfix reload
 		echo
 		echo "${b}Finished installing dependencies.${x}"
 		echo
+
+		read -p "${b}Also [purge and re-]install the local mail server for task notifications? (Y/n): ${x}" -n 1 -r
+		echo
+		if [[ ! $REPLY =~ ^[Nn]$ ]]
+		then
+			apt-get -y purge mailutils postfix || true
+			debconf-set-selections <<< "postfix postfix/mailname string $hostname"
+			debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+			apt-get install -y mailutils
+			/etc/init.d/postfix reload
+		fi
 
 		echo "${b}Now [re-]installing and updating easyengine...${x}"
 		echo

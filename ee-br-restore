@@ -34,55 +34,134 @@ os-read_conf_settings
 
 ################################################################################
 
-if [[ ! "${@#--skip-ee-install}" = "$@" ]]
+while getopts ":ibdp:l:e:" arguments; do
+	case $arguments in
+		i)	skip_ee_install="y"
+			echo "${r}${b}- Not [re-]installing EasyEngine as per | -i |...${x}"
+			echo
+			;;
+		b)	skip_backup="y"
+			echo "${r}${b}- Skipping current sites backup as per | -b |...${x}"
+			echo
+			;;
+		d)	delete_existing="y"
+			echo "${r}${b}- Deleting any already existing site to restore without asking as per | -d |...${x}"
+			echo
+			;;
+		p)	enable_php="$OPTARG"
+			;;
+		l)	enable_le="$OPTARG"
+			;;
+		c)	content="$OPTARG"
+			;;
+		e)	exclude_sites="$OPTARG"
+			;;
+		\?)	echo "${r}${b}Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |.${x}"
+			echo
+			os-exit_function
+			;;
+	esac
+done
+
+if [ ! -z "${enable_php-}" ]
 then
-	echo "${r}${b}- Not [re-]installing EasyEngine as per | --skip-ee-install |...${x}"
-	echo
-	skip_ee_install=y
+	case "$enable_php" in
+		y)	echo "${b}- Activating PHP on any NON wordpress site to restore without asking as per | -p y |...${x}"
+			echo
+			;;
+		n)	echo "${b}- NOT activating PHP on any NON wordpress site to restore without asking as per | -p n |...${x}"
+			echo
+			;;
+		*)	echo "${r}${b}Invalid content for | -p | argument in function | ${FUNCNAME[0]} |.${x}"
+			echo
+			os-exit_function
+			;;
+	esac
 fi
 
-if [[ ! "${@#--skip-backup}" = "$@" ]]
+if [ ! -z "${enable_le-}" ]
 then
-	echo "${r}${b}- Skipping current sites backup as per | --skip-backup |...${x}"
-	echo
-	skip_backup=y
+	case "$enable_le" in
+		y)	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | -l y |...${x}"
+			echo
+			;;
+		o)	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | -l o |...${x}"
+			echo
+			;;
+		n)	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | -l n |...${x}"
+			echo
+			;;
+		*)	echo "${r}${b}Invalid content for | -l | argument in function | ${FUNCNAME[0]} |.${x}"
+			echo
+			os-exit_function
+			;;
+	esac
 fi
 
-if [[ ! "${@#--delete-existing}" = "$@" ]]
+if [ ! -z "${exclude_sites-}" ]
 then
-	echo "${r}${b}- Deleting any already existing site to restore without asking as per | --delete-existing |...${x}"
-	echo
-	non_interactive_deletion=y
+	if [ ! "${exclude_sites-null}" = "" ]
+	then
+		echo "${b}- Excluding sites | ${r}$exclude_sites${x}${b} | from restore as per | -e [...] |...${x}"
+		echo
+	else
+		echo "${r}${b}Invalid content for | -e | argument in function | ${FUNCNAME[0]} |.${x}"
+		echo
+		echo "${b}Argument value must be defined and be a quoted comma-space delimited list of sites to exclude form restore.${x}"
+		echo
+		os-exit_function
+	fi
 fi
 
-if [[ ! "${@#--enable-php=y}" = "$@" ]]
-then
-	echo "${b}- Activating PHP on any NON wordpress site to restore without asking as per | --enable-php=y |...${x}"
-	echo
-	non_interactive_php=y
-elif [[ ! "${@#--enable-php=n}" = "$@" ]]
-then
-	echo "${b}- NOT activating PHP on any NON wordpress site to restore without asking as per | --enable-php=n |...${x}"
-	echo
-	non_interactive_php=n
-fi
+#if [[ ! "${@#--skip-ee-install}" = "$@" ]]
+#then
+#	echo "${r}${b}- Not [re-]installing EasyEngine as per | --skip-ee-install |...${x}"
+#	echo
+#	skip_ee_install=y
+#fi
 
-if [[ ! "${@#--activate-le=y}" = "$@" ]]
-then
-	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=y |...${x}"
-	echo
-	non_interactive_le=y
-elif [[ ! "${@#--activate-le=o}" = "$@" ]]
-then
-	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | --enable-php=o |...${x}"
-	echo
-	non_interactive_le=o
-elif [[ ! "${@#--activate-le=n}" = "$@" ]]
-then
-	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=n |...${x}"
-	echo
-	non_interactive_le=n
-fi
+#if [[ ! "${@#--skip-backup}" = "$@" ]]
+#then
+#	echo "${r}${b}- Skipping current sites backup as per | --skip-backup |...${x}"
+#	echo
+#	skip_backup=y
+#fi
+
+#if [[ ! "${@#--delete-existing}" = "$@" ]]
+#then
+#	echo "${r}${b}- Deleting any already existing site to restore without asking as per | --delete-existing |...${x}"
+#	echo
+#	delete_existing=y
+#fi
+
+#if [[ ! "${@#--enable-php=y}" = "$@" ]]
+#then
+#	echo "${b}- Activating PHP on any NON wordpress site to restore without asking as per | --enable-php=y |...${x}"
+#	echo
+#	enable_php=y
+#elif [[ ! "${@#--enable-php=n}" = "$@" ]]
+#then
+#	echo "${b}- NOT activating PHP on any NON wordpress site to restore without asking as per | --enable-php=n |...${x}"
+#	echo
+#	enable_php=n
+#fi
+
+#if [[ ! "${@#--activate-le=y}" = "$@" ]]
+#then
+#	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=y |...${x}"
+#	echo
+#	enable_le=y
+#elif [[ ! "${@#--activate-le=o}" = "$@" ]]
+#then
+#	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | --enable-php=o |...${x}"
+#	echo
+#	enable_le=o
+#elif [[ ! "${@#--activate-le=n}" = "$@" ]]
+#then
+#	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=n |...${x}"
+#	echo
+#	enable_le=n
+#fi
 
 ################################################################################
 
@@ -258,6 +337,10 @@ else
         fi
 fi
 
+### Add hardcoded sites to exclude to the user-specified ones
+
+restore_exclude_sites="22222, html, roundcubemail, ${exclude_sites-null}"
+
 for site in $restore_file_path/*
 do
 
@@ -266,7 +349,7 @@ do
 
 		this_site="$(echo "$site" | sed "s|${restore_file_path}/||")"
 
-		if [ ! $this_site = "22222" ] && [ ! $this_site = "html" ] && [ ! $this_site = "roundcubemail" ]
+		if [ "${restore_exclude_sites/$this_site}" = "$restore_exclude_sites" ]
 		then
 
 			echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
@@ -281,7 +364,7 @@ do
 				echo "${r}${b}   This site already exists on this machine.${x}"
 				echo
 
-				if [ "${non_interactive_deletion:-null}" = "y" ]
+				if [ "${delete_existing:-null}" = "y" ]
 				then
 					echo "${b}   Deleting site and re-creating it restoring its respective backup...${x}"
 					echo
@@ -347,7 +430,7 @@ do
 					echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site restore...${x}"
 					echo
 
-					if [ "${non_interactive_php:-null}" = "y" ]
+					if [ "${enable_php:-null}" = "y" ]
 					then
 
 						echo "${b}   Activating PHP on this site...${x}"
@@ -355,7 +438,7 @@ do
 						ee site update $this_site --php
 						echo
 
-					elif [ "${non_interactive_php:-null}" = "n" ]
+					elif [ "${enable_php:-null}" = "n" ]
 					then
 						echo "${b}   NOT activating PHP on this site...${x}"
 						echo
@@ -383,17 +466,17 @@ do
 
 				rsync -aAXx --exclude wp-config.php --exclude mysqldump.sql "$site"/ "$www_site_dir"
 
-				if [ "${non_interactive_le:-null}" = "y" ]
+				if [ "${enable_le:-null}" = "y" ]
 				then
 					echo "${b}   Provisioning LetsEncrypt TLS certificate for restored site...${x}"
 					echo
 					activate_le_proceed=y
-				elif [ "${non_interactive_le:-null}" = "o" ]
+				elif [ "${enable_le:-null}" = "o" ]
 				then
 					echo "${b}   Provisioning LetsEncrypt TLS certificate for restored site if DNS checks succeed...${x}"
 					echo
 					activate_le_proceed=o
-				elif [ "${non_interactive_le:-null}" = "n" ]
+				elif [ "${enable_le:-null}" = "n" ]
 				then
 					echo "${b}   NOT provisioning LetsEncrypt TLS certificate for restored site...${x}"
 					echo
@@ -666,6 +749,13 @@ do
 				echo
 
 			fi
+
+		else
+
+			echo "${b}*] Site | ${r}$this_site${x}${b} | is on the exclusion list.${x}"
+			echo
+			echo "${b}   Skipping...${x}"
+			echo
 
 		fi
 
