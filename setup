@@ -5,6 +5,8 @@
 set -e
 set -u
 
+# Check root
+
 if [[ $EUID -ne 0 ]]
 then
         echo "${r}${b}This script must be run as root${x}"
@@ -35,7 +37,7 @@ then
 	echo
         echo "Installing bleeding-edge version of $short_name up to latest git commit."
         echo
-        echo "[delete the | $conf_dir/beta | file to cancel your opt-in to beta versions]"
+        echo "[delete the | $conf_dir/beta | file to cancel your opt-in to bleeding-edge versions]"
         echo
         echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
         ( cd $script_dir && bash ./install --return-check )

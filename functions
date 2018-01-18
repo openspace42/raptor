@@ -44,6 +44,7 @@ define_vars() {
 
 	proj_name="EasyEngine-Backup-Restore"
 	short_name="ee-br"
+	author_name="openspace42"
 
 	os-define_vars
 
