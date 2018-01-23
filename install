@@ -84,7 +84,7 @@ describe_setting() {
 
 }
 
-os-set_option -o backup_exclude_sites -v n -d y -s backups/local
+os-set_option -o backup_exclude_sites -v n -d y -p backups/local
 
 
 
