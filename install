@@ -7,8 +7,8 @@ set -u
 
 # Source local functions file
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $script_dir/functions
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $source_dir/functions
 
 # Check for root user runtime
 
@@ -27,8 +27,6 @@ os-define_formatting
 
 define_vars
 
-mkdir -p $conf_dir
-
 echo
 
 ################################################################################
@@ -46,6 +44,10 @@ fi
 
 ################################################################################
 
+os-check_install_version
+
+################################################################################
+
 echo "${b}Initiating installer...${x}"
 echo
 
@@ -53,14 +55,6 @@ install_easyengine
 
 echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
 echo
-
-if [ -d $install_dir ]
-then
-        echo "${g}${b}Found existing installation.${x}"
-        echo
-else
-	mkdir -p $install_dir
-fi
 
 rsync -aAXx $source_dir/ $install_dir/ --include=ee-br-backup --include=ee-br-restore --include=functions --exclude="*"
 
@@ -88,7 +82,7 @@ os-set_option -o backup_exclude_sites -v n -d y -p backups/local
 
 
 
-os-add_cron_job -n ee-br-backup -t "8 4 * * * " -c "bash /root/openspace42/ee-br/ee-br-backup"
+os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/ee-br/ee-br-backup"
 
 
 

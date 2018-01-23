@@ -1,5 +1,8 @@
 #!/bin/bash
 
+short_name="ee-br"
+author_name="openspace42"
+
 # Set bash environment error management
 
 set -e
@@ -21,13 +24,12 @@ fi
 echo
 
 now="$(date +"%Y-%m-%d_%H-%M-%S")"
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ### Define latest version
-latest_vers="$(grep 'refs/tags/' $script_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
+export latest_vers="$(grep 'refs/tags/' $source_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
 
-short_name="ee-br"
-base_dir=/root/openspace42
+base_dir=/root/$author_name
 install_dir=$base_dir/$short_name
 conf_dir=$install_dir/conf
 
@@ -40,11 +42,12 @@ then
         echo "[delete the | $conf_dir/beta | file to cancel your opt-in to bleeding-edge versions]"
         echo
         echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
-        ( cd $script_dir && bash ./install --return-check )
-        echo "bleeding_edge $now" > "$conf_dir"/installed_version
+        ( cd $source_dir && bash ./install --return-check )
 else
         echo "Installing $short_name v$latest_vers"
         echo
-	( cd $script_dir && git checkout tags/v$latest_vers && bash ./install --return-check )
-        echo "$latest_vers" > "$conf_dir"/installed_version
+	( cd $source_dir && git checkout tags/v$latest_vers && bash ./install --return-check )
 fi
+
+echo "Exiting installer"
+echo
