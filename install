@@ -31,13 +31,13 @@ define_vars
 
 if [[ "${@#--return-check}" = "$@" ]]
 then
-        echo "${r}${b}This script must not be run directly.${x}"
-	echo
-        echo "${b}You should instead run the | ${x}${g}${b}setup${x}${b} | script and it will take care of the installation itself.${x}"
-	echo
-        echo "${b}Exiting...${x}"
-        echo
-        exit 1
+    echo "${r}${b}This script must not be run directly.${x}"
+    echo
+    echo "${b}You should instead run the | ${x}${g}${b}setup${x}${b} | script and it will take care of the installation itself.${x}"
+    echo
+    echo "${b}Exiting...${x}"
+    echo
+    exit 1
 fi
 
 ################################################################################
@@ -70,14 +70,14 @@ os-setup_backup_restore
 
 describe_setting() {
 
-	echo "${b}Please specify any sites to exclude from your backups.${x}"
-	echo
-	echo "${b}Type in a comma separated list of websites to exclude.${x}"
-	echo
-        echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
-	echo
-        echo "${b}Enter | null | to skip excluding any site.${x}"
-	echo
+    echo "${b}Please specify any sites to exclude from your backups.${x}"
+    echo
+    echo "${b}Type in a comma separated list of websites to exclude.${x}"
+    echo
+    echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
+    echo
+    echo "${b}Enter | null | to skip excluding any site.${x}"
+    echo
 
 }
 

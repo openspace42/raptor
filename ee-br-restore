@@ -37,29 +37,29 @@ os-read_conf_settings
 while getopts ":ibdp:l:e:" arguments; do
 	case $arguments in
 		i)	skip_ee_install="y"
-			echo "${r}${b}- Not [re-]installing EasyEngine as per | -i |...${x}"
-			echo
-			;;
+		echo "${r}${b}- Not [re-]installing EasyEngine as per | -i |...${x}"
+		echo
+		;;
 		b)	skip_backup="y"
-			echo "${r}${b}- Skipping current sites backup as per | -b |...${x}"
-			echo
-			;;
+		echo "${r}${b}- Skipping current sites backup as per | -b |...${x}"
+		echo
+		;;
 		d)	delete_existing="y"
-			echo "${r}${b}- Deleting any already existing site to restore without asking as per | -d |...${x}"
-			echo
-			;;
+		echo "${r}${b}- Deleting any already existing site to restore without asking as per | -d |...${x}"
+		echo
+		;;
 		p)	enable_php="$OPTARG"
-			;;
+		;;
 		l)	enable_le="$OPTARG"
-			;;
+		;;
 		c)	content="$OPTARG"
-			;;
+		;;
 		e)	exclude_sites="$OPTARG"
-			;;
+		;;
 		\?)	echo "${r}${b}Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |.${x}"
-			echo
-			os-exit_function
-			;;
+		echo
+		os-exit_function
+		;;
 	esac
 done
 
@@ -67,15 +67,15 @@ if [ ! -z "${enable_php-}" ]
 then
 	case "$enable_php" in
 		y)	echo "${b}- Activating PHP on any NON wordpress site to restore without asking as per | -p y |...${x}"
-			echo
-			;;
+		echo
+		;;
 		n)	echo "${b}- NOT activating PHP on any NON wordpress site to restore without asking as per | -p n |...${x}"
-			echo
-			;;
+		echo
+		;;
 		*)	echo "${r}${b}Invalid content for | -p | argument in function | ${FUNCNAME[0]} |.${x}"
-			echo
-			os-exit_function
-			;;
+		echo
+		os-exit_function
+		;;
 	esac
 fi
 
@@ -83,18 +83,18 @@ if [ ! -z "${enable_le-}" ]
 then
 	case "$enable_le" in
 		y)	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | -l y |...${x}"
-			echo
-			;;
+		echo
+		;;
 		o)	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | -l o |...${x}"
-			echo
-			;;
+		echo
+		;;
 		n)	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | -l n |...${x}"
-			echo
-			;;
+		echo
+		;;
 		*)	echo "${r}${b}Invalid content for | -l | argument in function | ${FUNCNAME[0]} |.${x}"
-			echo
-			os-exit_function
-			;;
+		echo
+		os-exit_function
+		;;
 	esac
 fi
 
@@ -184,26 +184,26 @@ echo
 options=("backup file stored locally" "backup file stored elsewhere" "exit")
 select opt in "${options[@]}"
 do
-    echo
-    case $opt in
-	"backup file stored locally")
-	    restore_source=here
-	    break
-	    ;;
-	"backup file stored elsewhere")
-	    restore_source=elsewhere
-	    break
-	    ;;
-	"exit")
-	    echo "${b}Exiting...${x}"
-	    echo
-	    exit
-	    ;;
-	*)
-	    echo "${r}${b}Invalid option. Retry...${x}"
-	    echo
-	    ;;
-    esac
+	echo
+	case $opt in
+		"backup file stored locally")
+		restore_source=here
+		break
+		;;
+		"backup file stored elsewhere")
+		restore_source=elsewhere
+		break
+		;;
+		"exit")
+		echo "${b}Exiting...${x}"
+		echo
+		exit
+		;;
+		*)
+		echo "${r}${b}Invalid option. Retry...${x}"
+		echo
+		;;
+	esac
 done
 
 if [ $restore_source = "here" ]
@@ -213,53 +213,53 @@ then
 
 else
 
-        if [ "$backup_location" = "s3" ]
-        then
-                echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
-                echo
-                choice="${b}Do you want to restore from S3 or from a standalone $short_name backup file you have stored individually? ${x}"
-                echo "$choice"
+	if [ "$backup_location" = "s3" ]
+	then
+		echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
 		echo
-                options=("S3" "standalone" "exit")
-                select opt in "${options[@]}"
-                do
-                    echo
-                    case $opt in
-                        "S3")
-                            restore_type=s3
-                            break
-                            ;;
-                        "standalone")
-                            restore_type=standalone
-                            break
-                            ;;
-                        "exit")
-                            echo "${b}Exiting...${x}"
-                            echo
-                            exit
-                            ;;
-                        *)  echo "${r}${b}Invalid option. Retry...${x}"
-                            echo
-                            ;;
-                    esac
-                done
-        else
-                restore_type=standalone
-        fi
+		choice="${b}Do you want to restore from S3 or from a standalone $short_name backup file you have stored individually? ${x}"
+		echo "$choice"
+		echo
+		options=("S3" "standalone" "exit")
+		select opt in "${options[@]}"
+		do
+			echo
+			case $opt in
+				"S3")
+				restore_type=s3
+				break
+				;;
+				"standalone")
+				restore_type=standalone
+				break
+				;;
+				"exit")
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)  echo "${r}${b}Invalid option. Retry...${x}"
+				echo
+				;;
+			esac
+		done
+	else
+		restore_type=standalone
+	fi
 
 
 
-        if [ $restore_type = "s3" ]
-        then
+	if [ $restore_type = "s3" ]
+	then
 
 		restore_from_S3
 
-        else
+	else
 
 		restore_from_standalone
 		echo
 
-        fi
+	fi
 
 fi
 
@@ -299,22 +299,22 @@ then
 	if [ $restore_source = "here" ]
 	then
 
-	        echo "${b}Backed up current installation to $backups_archive_dir.${x}"
-	        echo
+		echo "${b}Backed up current installation to $backups_archive_dir.${x}"
+		echo
 
 	else
 
 		mkdir -p "$backups_dir"/old
-	        mv "$backups_archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
+		mv "$backups_archive_dir" "$backups_dir"/old/archive-old-before-"$now"-restore
 
 		if [ ! -z "${duplicity_log_dir-}" ]
 		then
 			mkdir -p "$duplicity_log_dir"/old
-		        mv "$duplicity_log_dir"/backup/ "$duplicity_log_dir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
+			mv "$duplicity_log_dir"/backup/ "$duplicity_log_dir"/old/backup-old-before-"$now"-restore 2> /dev/null || true
 		fi
 
-	        echo "${b}Backed up current installation to local backups directory and moved the latter to $backups_dir/old/archive-old-before-$now-restore.${x}"
-	        echo
+		echo "${b}Backed up current installation to local backups directory and moved the latter to $backups_dir/old/archive-old-before-$now-restore.${x}"
+		echo
 	fi
 
 fi
@@ -326,15 +326,15 @@ echo
 
 if [ $restore_source = "here" ]
 then
-        restore_file_name="$(echo "$sel_backup_file" | sed 's|./||g' | sed 's/-last-backup.*-restore//' | sed 's/.tar.bz2//g')"
-        restore_file_path=$restores_dir/local/$restore_file_name
+	restore_file_name="$(echo "$sel_backup_file" | sed 's|./||g' | sed 's/-last-backup.*-restore//' | sed 's/.tar.bz2//g')"
+	restore_file_path=$restores_dir/local/$restore_file_name
 else
-        if [ $restore_type = "s3" ]
-        then
-                restore_file_path=$restores_dir/s3
-        else
-                restore_file_path="/root/$short_name-restore"
-        fi
+	if [ $restore_type = "s3" ]
+	then
+		restore_file_path=$restores_dir/s3
+	else
+		restore_file_path="/root/$short_name-restore"
+	fi
 fi
 
 ### Add hardcoded sites to exclude to the user-specified ones
@@ -501,182 +501,182 @@ do
 					hostname="$this_site"
 
 					declare -a dnsarray=(
-			                        "hostname"
-			                        )
+					"hostname"
+					)
 
 					# Skip IPv6 checks as EasyEngine doesn't yet support it [WTF!!!]
 
 					declare -a iparray=(
-			                        "v4"
-			                        )
+					"v4"
+					)
 
 					declare -A digarray=(
-						[HN]=""
-						[www]="www."
+					[HN]=""
+					[www]="www."
 					)
 
 					dnschecktype=$hostname
 					thisipv4="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 
 					for dnstype in "${dnsarray[@]}"
-				        do
+					do
 
-				        	for ipversion in "${iparray[@]}"
-				        	do
+						for ipversion in "${iparray[@]}"
+						do
 
-		        				echo "${b}   Now let's make sure your site's IP$ipversion DNS settings are correct.${x}"
-		        				echo
+							echo "${b}   Now let's make sure your site's IP$ipversion DNS settings are correct.${x}"
+							echo
 
-			        			digarrayiter=0
+							digarrayiter=0
 
-			        			for i in "${!digarray[@]}"
-			        			do
+							for i in "${!digarray[@]}"
+							do
 
-			        				digarrayiter=$((digarrayiter + 1))
+								digarrayiter=$((digarrayiter + 1))
 
-		        					echo "${b}   $digarrayiter] Now checking the ${digarray[$i]}$dnschecktype DNS record in IP$ipversion...${x}"
-		        					echo
+								echo "${b}   $digarrayiter] Now checking the ${digarray[$i]}$dnschecktype DNS record in IP$ipversion...${x}"
+								echo
 
-			        				accept=n
-			        				until [ $accept = "y" ]
-			        				do
+								accept=n
+								until [ $accept = "y" ]
+								do
 
-		        						if [ "$ipversion" = "v4" ]
-		        						then
-		        				                	thisip=$thisipv4
-		        							digresult="$(getent ahostsv4 "${digarray[$i]}""$dnschecktype". | head -1 |sed 's/ .*//')"
-		        				                	rectype="A"
-		        						else
-		        				                	thisip=$thisipv6
-		        				                	digresult="$(getent ahostsv6 "${digarray[$i]}""$dnschecktype". | grep -v "$thisipv4" | head -1 | sed 's/ .*//')"
-		        				                	rectype="AAAA"
-		        						fi
+									if [ "$ipversion" = "v4" ]
+									then
+										thisip=$thisipv4
+										digresult="$(getent ahostsv4 "${digarray[$i]}""$dnschecktype". | head -1 |sed 's/ .*//')"
+										rectype="A"
+									else
+										thisip=$thisipv6
+										digresult="$(getent ahostsv6 "${digarray[$i]}""$dnschecktype". | grep -v "$thisipv4" | head -1 | sed 's/ .*//')"
+										rectype="AAAA"
+									fi
 
-			        					if [ -z "$digresult" ]
-			        					then
+									if [ -z "$digresult" ]
+									then
 
-			        						if [ ! "$dnstype" = "SRV" ]
-			        						then
-			        							echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to be at all set.${x}"
-			        							echo
-			        						else
-			        							echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to be at all set.${x}"
-			        							echo
-			        						fi
+										if [ ! "$dnstype" = "SRV" ]
+										then
+											echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to be at all set.${x}"
+											echo
+										else
+											echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to be at all set.${x}"
+											echo
+										fi
 
-			        						echo "${b}   Please ensure you set your DNS record as follows:${x}"
-			        						echo
-			        						echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
-			        						echo
-			        						if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
-			        						then
-			        							if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
-			        							then
-			        								if [ "$ipversion" = "v4" ]
-			        								then
-			        									echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
-			        									echo
-			        									echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
-			        									echo
-			        								fi
-			        							fi
-			        						fi
-			        						result=notset
-			        					else
-			        						if [ "$digresult" = "$thisip" ]
-			        						then
+										echo "${b}   Please ensure you set your DNS record as follows:${x}"
+										echo
+										echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+										echo
+										if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
+										then
+											if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
+											then
+												if [ "$ipversion" = "v4" ]
+												then
+													echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
+													echo
+													echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
+													echo
+												fi
+											fi
+										fi
+										result=notset
+									else
+										if [ "$digresult" = "$thisip" ]
+										then
 
-			        							if [ ! "$dnstype" = "SRV" ]
-			        							then
-			        								echo "${g}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record appears to resolve correctly to this server.${x}"
-			        								echo
-			        							else
-			        								echo "${g}${b}   The ${digarray[$i]}$dnschecktype SRV record appears to resolve correctly to this server.${x}"
-			        								echo
-			        							fi
+											if [ ! "$dnstype" = "SRV" ]
+											then
+												echo "${g}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record appears to resolve correctly to this server.${x}"
+												echo
+											else
+												echo "${g}${b}   The ${digarray[$i]}$dnschecktype SRV record appears to resolve correctly to this server.${x}"
+												echo
+											fi
 
-			        							echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
-			        							echo
-			        							result=ok
-			        						else
+											echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+											echo
+											result=ok
+										else
 
-			        							if [ ! "$dnstype" = "SRV" ]
-			        							then
-			        								echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to correctly resolve to this server.${x}"
-			        								echo
-			        							else
-			        								echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to correctly resolve to this server.${x}"
-			        								echo
-			        							fi
+											if [ ! "$dnstype" = "SRV" ]
+											then
+												echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to correctly resolve to this server.${x}"
+												echo
+											else
+												echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to correctly resolve to this server.${x}"
+												echo
+											fi
 
-			        							echo "${b}   This is the result of a DNS query for ${digarray[$i]}$dnschecktype:${x}"
-			        							echo
-			        							echo "   $digresult"
-			        							echo
-			        							echo "${b}   Please set it instead to:${x}"
-			        							echo
-			        							echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
-			        							echo
-			        							if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
-			        							then
-			        								if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
-			        								then
-			        									if [ "$ipversion" = "v4" ]
-			        									then
-			        										echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
-			        										echo
-			        										echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
-			        										echo
-			        									fi
-			        								fi
-			        							fi
-			        							result=incorrect
-			        						fi
-			        					fi
+											echo "${b}   This is the result of a DNS query for ${digarray[$i]}$dnschecktype:${x}"
+											echo
+											echo "   $digresult"
+											echo
+											echo "${b}   Please set it instead to:${x}"
+											echo
+											echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+											echo
+											if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
+											then
+												if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
+												then
+													if [ "$ipversion" = "v4" ]
+													then
+														echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
+														echo
+														echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
+														echo
+													fi
+												fi
+											fi
+											result=incorrect
+										fi
+									fi
 
-			        					if [ ! $result = "ok" ]
-			        					then
+									if [ ! $result = "ok" ]
+									then
 
 										if [ "${activate_le_proceed:-null}" = "y" ]
 										then
 
 											valid=n
-				        						until [ $valid = "y" ]
-				        						do
-				        							read -n 1 -rp "${b}   Test again?${x} (${b}Y${x}[es]/${b}s${x}[kip]/${b}e${x}[xit]) " answer;
-				        							case $answer in
-				        							"")
-				        								echo
-				        								valid=y
-				        								accept=n
-				        								;;
-				        							y)
-				        								echo -e "\\n"
-				        								valid=y
-				        								accept=n
-				        								;;
-				        							s)
-				        								echo -e "\\n"
-				        								echo "${b}   Skipping DNS check for this record...${x}"
-				        								echo
-				        								valid=y
-				        								accept=y
-				        								;;
-				        							e)
-				        								echo -e "\\n"
-				        		        					echo "${b}   Exiting...${x}"
-				        		        					echo
-				        		        					exit
-				        		        					;;
-				        							*)
-				        								echo -e "\\n"
-				        								echo "${b}   Invalid option. Retry...${x}"
-				        		        					echo
-				        								valid=n
-				        								accept=n
-				        				        			;;
-				        							esac
-				        						done
+											until [ $valid = "y" ]
+											do
+												read -n 1 -rp "${b}   Test again?${x} (${b}Y${x}[es]/${b}s${x}[kip]/${b}e${x}[xit]) " answer;
+												case $answer in
+													"")
+													echo
+													valid=y
+													accept=n
+													;;
+													y)
+													echo -e "\\n"
+													valid=y
+													accept=n
+													;;
+													s)
+													echo -e "\\n"
+													echo "${b}   Skipping DNS check for this record...${x}"
+													echo
+													valid=y
+													accept=y
+													;;
+													e)
+													echo -e "\\n"
+													echo "${b}   Exiting...${x}"
+													echo
+													exit
+													;;
+													*)
+													echo -e "\\n"
+													echo "${b}   Invalid option. Retry...${x}"
+													echo
+													valid=n
+													accept=n
+													;;
+												esac
+											done
 
 										else
 
@@ -688,32 +688,32 @@ do
 
 									else
 
-			        						accept=y
+										accept=y
 
-			        					fi
+									fi
 
-			        				done
+								done
 
-							if [ $result = ok ]
-							then
-
-								if [ $i = "HN" ]
+								if [ $result = ok ]
 								then
-									le_dns_check_HN=ok
-								else
-									le_dns_check_www=ok
+
+									if [ $i = "HN" ]
+									then
+										le_dns_check_HN=ok
+									else
+										le_dns_check_www=ok
+									fi
+
 								fi
 
-							fi
+							done
 
-			        			done
+							echo "${b}   Finished checking your $dnstype IP$ipversion DNS settings.${x}"
+							echo
 
-	        				echo "${b}   Finished checking your $dnstype IP$ipversion DNS settings.${x}"
-	        				echo
+						done
 
-				        	done
-
-				        done
+					done
 
 					if [ "${le_dns_check_HN:-null}" = "ok" ] && [ "${le_dns_check_www:-null}" = "ok" ]
 					then
@@ -730,17 +730,17 @@ do
 
 					if [ ! -z "${le_dns_check_HN-}" ]
 					then
-					        unset le_dns_check_HN
+						unset le_dns_check_HN
 					fi
 
 					if [ ! -z "${le_dns_check_www-}" ]
 					then
-					        unset le_dns_check_www
+						unset le_dns_check_www
 					fi
 
 					if [ ! -z "${activate_le_proceed-}" ]
 					then
-					        unset activate_le_proceed
+						unset activate_le_proceed
 					fi
 
 				fi

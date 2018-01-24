@@ -24,9 +24,9 @@ check_root() {
 	then
 		echo "${r}${b}This script must be run as root${x}"
 		echo
-	        echo "${b}Exiting...${x}"
-	        echo
-	        exit 1
+		echo "${b}Exiting...${x}"
+		echo
+		exit 1
 	fi
 
 }
@@ -239,8 +239,8 @@ purge_backups() {
 	local_archive_items="$(ls -1q $backups_archive_dir | wc -l)"
 	if [ $local_archive_items -gt $max_local_backups ]
 	then
-	        tailnumber=$(( $max_local_backups + 1 ))
-	        ( cd $backups_archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
+		tailnumber=$(( $max_local_backups + 1 ))
+		( cd $backups_archive_dir && ls -t | tail -n +"$tailnumber" | xargs -d '\n' rm )
 		update_storage_info
 	fi
 
@@ -387,7 +387,7 @@ backup_locally() {
 				echo
 			else
 				echo "${b}*] Site | ${r}$this_site${x}${b} | is on the exclusion list.${x}"
-                                echo
+				echo
 				echo "${b}   Skipping...${x}"
 				echo
 			fi
@@ -403,17 +403,17 @@ backup_locally() {
 restore_from_here() {
 
 	if [ ! -d $backups_archive_dir ]
-        then
-                echo "${r}${b}Local backups directory [$backups_archive_dir] not found.${x}"
-                echo
-                echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
-                echo
-                echo "${b}Check your $install_dir for a directory called | backups(-[something]) | and if you find something rename the most recently datestamped directory to | backups | ."
-                echo
-                echo "${b}Exiting...${x}"
-                echo
-                exit 1
-        fi
+	then
+		echo "${r}${b}Local backups directory [$backups_archive_dir] not found.${x}"
+		echo
+		echo "${b}It's possible you've already partially run this restore script choosing the | elsewhere | option, or that this machine never successfully ran a backup.${x}"
+		echo
+		echo "${b}Check your $install_dir for a directory called | backups(-[something]) | and if you find something rename the most recently datestamped directory to | backups | ."
+		echo
+		echo "${b}Exiting...${x}"
+		echo
+		exit 1
+	fi
 
 	count="$(ls -1 $backups_archive_dir/*.tar.bz2 2>/dev/null | wc -l)"
 	if [ $count = 0 ]
@@ -429,94 +429,94 @@ restore_from_here() {
 		exit 1
 	fi
 
-        echo "${b}These are the backup dates available for restore:${x}"
-        echo
-        ls -1 "$backups_archive_dir" | sed -e 's/ee-br-backup-//g' | sed -e 's/.tar.bz2//g'
-        echo
-        read -rp "${b}[press enter to continue...]${x}"
-        clear
+	echo "${b}These are the backup dates available for restore:${x}"
+	echo
+	ls -1 "$backups_archive_dir" | sed -e 's/ee-br-backup-//g' | sed -e 's/.tar.bz2//g'
+	echo
+	read -rp "${b}[press enter to continue...]${x}"
+	clear
 
-        choice="${b}Now choose the file you'd like to restore: ${x}"
-        echo "$choice"
-        echo
+	choice="${b}Now choose the file you'd like to restore: ${x}"
+	echo "$choice"
+	echo
 
 	set +u
 
-        cd $backups_archive_dir
-        unset options i
-        while IFS= read -r -d $'\n' f; do
-                options[i++]="$f"
-        done < <(find ./ -maxdepth 1 -type f -name "*.tar.bz2" | sort -r )
+	cd $backups_archive_dir
+	unset options i
+	while IFS= read -r -d $'\n' f; do
+		options[i++]="$f"
+	done < <(find ./ -maxdepth 1 -type f -name "*.tar.bz2" | sort -r )
 
 	set -u
 
-        accept=n
-        until [ $accept = "y" ]
-        do
+	accept=n
+	until [ $accept = "y" ]
+	do
 
-                select sel_backup_file in "${options[@]}" "exit"
-                do
-                        echo
-                        case $sel_backup_file in
-                                *.tar.bz2)
-                                        echo "${b}Backup file $sel_backup_file selected.${x}"
-                                        break
-                                        ;;
-                                "exit")
-                                        echo "${b}Exiting...${x}"
-                                        echo
-                                        exit
-                                        ;;
-                                *)
-                                        echo "${r}${b}Invalid option. Retry...${x}"
-                                        echo
-                                        ;;
-                        esac
-                done
-                echo
+		select sel_backup_file in "${options[@]}" "exit"
+		do
+			echo
+			case $sel_backup_file in
+				*.tar.bz2)
+				echo "${b}Backup file $sel_backup_file selected.${x}"
+				break
+				;;
+				"exit")
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo "${r}${b}Invalid option. Retry...${x}"
+				echo
+				;;
+			esac
+		done
+		echo
 
-                valid=n
-                until [ $valid = "y" ]
-                do
-                        read -n 1 -rp "${b}Is this the correct file?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
-                        case $answer in
-                        "")
-                                echo
-                                valid=y
-                                accept=y
-                                ;;
-                        y)
-                                echo -e "\\n"
-                                valid=y
-                                accept=y
-                                ;;
-                        n)
-                                echo -e "\\n"
-                                echo "${b}No problem, please select your desired file again now...${x}"
-                                echo
-                                valid=y
-                                accept=n
-                                ;;
-                        e)
-                                echo -e "\\n"
-                                echo "${b}Exiting...${x}"
-                                echo
-                                exit
-                                ;;
-                        *)
-                                echo -e "\\n"
-                                echo "${b}Invalid option. Retry...${x}"
-                                echo
-                                valid=n
-                                accept=n
-                                ;;
-                        esac
-                done
+		valid=n
+		until [ $valid = "y" ]
+		do
+			read -n 1 -rp "${b}Is this the correct file?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+			case $answer in
+				"")
+				echo
+				valid=y
+				accept=y
+				;;
+				y)
+				echo -e "\\n"
+				valid=y
+				accept=y
+				;;
+				n)
+				echo -e "\\n"
+				echo "${b}No problem, please select your desired file again now...${x}"
+				echo
+				valid=y
+				accept=n
+				;;
+				e)
+				echo -e "\\n"
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo -e "\\n"
+				echo "${b}Invalid option. Retry...${x}"
+				echo
+				valid=n
+				accept=n
+				;;
+			esac
+		done
 
-        done
+	done
 
-        mkdir -p $restores_dir/local/
-        tar -xvjf "$sel_backup_file" -C "$restores_dir"/local/
+	mkdir -p $restores_dir/local/
+	tar -xvjf "$sel_backup_file" -C "$restores_dir"/local/
 
 }
 
@@ -561,36 +561,36 @@ restore_from_standalone() {
 			do
 				read -n 1 -rp "${b}Is | $standalonebackupfile | correct? (Y/n/e[xit]) ${x}" answer;
 				case $answer in
-				"")
+					"")
 					echo
 					valid=y
 					defined=y
 					;;
-				y)
+					y)
 					echo -e "\\n"
 					valid=y
 					defined=y
 					;;
-				n)
+					n)
 					echo -e "\\n"
 					echo "${b}Ok, then please try again...${x}"
 					echo
 					valid=y
 					defined=n
 					;;
-				e)
+					e)
 					echo -e "\\n"
 					echo "${b}Exiting...${x}"
 					echo
 					exit
 					;;
-				*)
+					*)
 					echo -e "\\n"
 					echo "${r}${b}Invalid option. Retry...${x}"
 					echo
 					valid=n
-				defined=n
-				;;
+					defined=n
+					;;
 				esac
 			done
 		done
@@ -641,125 +641,125 @@ duplicity_loop() {
 	TODAY=$(date +%d%m%Y)
 
 	if [ "${1:-null}" = "backup" ]
-        then
-                duplicity_type="backup"
-        else
-                duplicity_type="restore"
-        fi
+	then
+		duplicity_type="backup"
+	else
+		duplicity_type="restore"
+	fi
 
 
-        duplicity_base_dir=/root/logs/$short_name-duplicity
+	duplicity_base_dir=/root/logs/$short_name-duplicity
 	duplicity_log_dir=$duplicity_base_dir/$duplicity_type
 
-        # Set up some variables for logging
+	# Set up some variables for logging
 	LOGFILE="$duplicity_log_dir/$duplicity_type.log"
 	DAILYLOGFILE="$duplicity_log_dir/$duplicity_type.daily.log"
 	FULLBACKLOGFILE="$duplicity_log_dir/$duplicity_type.full.log"
 
-        is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
+	is_running=$(ps -ef | grep duplicity  | grep python | wc -l)
 
 	if [ ! -d $duplicity_log_dir ]
-        then
+	then
 		mkdir -p $duplicity_log_dir
-        fi
+	fi
 
-        if [ ! -f $FULLBACKLOGFILE ]
-        then
-                touch $FULLBACKLOGFILE
-        fi
+	if [ ! -f $FULLBACKLOGFILE ]
+	then
+		touch $FULLBACKLOGFILE
+	fi
 
-        if [ "$is_running" -eq 0 ]
-        then
-                # Clear the old daily log file
-                cat /dev/null > ${DAILYLOGFILE}
+	if [ "$is_running" -eq 0 ]
+	then
+		# Clear the old daily log file
+		cat /dev/null > ${DAILYLOGFILE}
 
-                # Trace function for logging, don't change this
-                trace () {
-                        stamp=$(date +%Y-%m-%d_%H:%M:%S)
-                        echo "$stamp: $*" >> ${DAILYLOGFILE}
-                }
+		# Trace function for logging, don't change this
+		trace () {
+			stamp=$(date +%Y-%m-%d_%H:%M:%S)
+			echo "$stamp: $*" >> ${DAILYLOGFILE}
+		}
 
-                if [ "${1:-null}" = "backup" ]
-                then
+		if [ "${1:-null}" = "backup" ]
+		then
 
-                        # The source of your backup
-                        SOURCE=$backups_latest_dir/ # Use / for full system backup [not the case for $scriptname]
+			# The source of your backup
+			SOURCE=$backups_latest_dir/ # Use / for full system backup [not the case for $scriptname]
 
-                fi
+		fi
 
-                FULL=
-                tail -1 "${FULLBACKLOGFILE}" | grep "${TODAY}" > /dev/null || true
-                if [ $? -ne 0 -a "$(date +%d)" -eq 1 ]
-                then
-                        FULL=full
-                fi;
+		FULL=
+		tail -1 "${FULLBACKLOGFILE}" | grep "${TODAY}" > /dev/null || true
+		if [ $? -ne 0 -a "$(date +%d)" -eq 1 ]
+		then
+			FULL=full
+		fi;
 
-                trace "Backup for local filesystem started"
+		trace "Backup for local filesystem started"
 
 		set +e
 
-                if [ "${1:-null}" = "backup" ]
-                then
+		if [ "${1:-null}" = "backup" ]
+		then
 
-                        # How long to keep backups for
-                        OLDER_THAN="$duplicity_min_history"
+			# How long to keep backups for
+			OLDER_THAN="$duplicity_min_history"
 
-                        trace "... removing old backups"
+			trace "... removing old backups"
 
-                        duplicity remove-older-than "${OLDER_THAN}" "${DEST}" >> "${DAILYLOGFILE}" 2>&1  || true
+			duplicity remove-older-than "${OLDER_THAN}" "${DEST}" >> "${DAILYLOGFILE}" 2>&1  || true
 
-                fi
+		fi
 
-                trace "... backing up filesystem"
+		trace "... backing up filesystem"
 
-                #    duplicity \
-                #        ${FULL} \
-                #        --encrypt-key=${GPG_KEY} \
-                #        --sign-key=${GPG_KEY} \
-                #        --include=/var/rsnap-mysql \
-                #        --include=/var/www \
-                #        --include=/etc \
-                #        --exclude=/** \
-                #        ${SOURCE} ${DEST} >> ${DAILYLOGFILE} 2>&1
+		#    duplicity \
+		#        ${FULL} \
+		#        --encrypt-key=${GPG_KEY} \
+		#        --sign-key=${GPG_KEY} \
+		#        --include=/var/rsnap-mysql \
+		#        --include=/var/www \
+		#        --include=/etc \
+		#        --exclude=/** \
+		#        ${SOURCE} ${DEST} >> ${DAILYLOGFILE} 2>&1
 
-                if [ "${1:-null}" = "backup" ]
-                then
-                        duplicity ${FULL} "${SOURCE}" "${DEST}" # Insert --encrypt-key and --sign-key after ${FULL} if using GPG
-                else
-                        duplicity "${DEST}" "$restores_dir"/s3/ >$tmp_dir/duplicity-log 2>&1
-                fi
+		if [ "${1:-null}" = "backup" ]
+		then
+			duplicity ${FULL} "${SOURCE}" "${DEST}" # Insert --encrypt-key and --sign-key after ${FULL} if using GPG
+		else
+			duplicity "${DEST}" "$restores_dir"/s3/ >$tmp_dir/duplicity-log 2>&1
+		fi
 
 		set -e
 
-                trace "Backup for local filesystem complete"
-                trace "------------------------------------"
+		trace "Backup for local filesystem complete"
+		trace "------------------------------------"
 
-                if [ "${1:-null}" = "backup" ]
-                then
+		if [ "${1:-null}" = "backup" ]
+		then
 
-                        # Send the daily log file by email
-                        #cat "$DAILYLOGFILE" | mail -s "Duplicity Backup Log for $HOST - $DATE" $MAILADDR
-                        #BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep Errors | awk '{ print $2 }'`
-                        BACKUPSTATUS=$(cat "$DAILYLOGFILE" | grep -i error | wc -l)
-                        if [ "$BACKUPSTATUS" != "0" ]
-                        then
-                                cat "$DAILYLOGFILE" | mail -aFrom:"$scriptname@$HOST" -s "ERROR in $scriptname backup for $HOST on $DATE" $MAILADDR
-                        elif [ "$FULL" = "full" ]
-                        then
-                                echo "$(date +%d%m%Y_%T) Full Back Done" >> $FULLBACKLOGFILE
-                        fi
+			# Send the daily log file by email
+			#cat "$DAILYLOGFILE" | mail -s "Duplicity Backup Log for $HOST - $DATE" $MAILADDR
+			#BACKUPSTATUS=`cat "$DAILYLOGFILE" | grep Errors | awk '{ print $2 }'`
+			BACKUPSTATUS=$(cat "$DAILYLOGFILE" | grep -i error | wc -l)
+			if [ "$BACKUPSTATUS" != "0" ]
+			then
+				cat "$DAILYLOGFILE" | mail -aFrom:"$scriptname@$HOST" -s "ERROR in $scriptname backup for $HOST on $DATE" $MAILADDR
+			elif [ "$FULL" = "full" ]
+			then
+				echo "$(date +%d%m%Y_%T) Full Back Done" >> $FULLBACKLOGFILE
+			fi
 
-                fi
+		fi
 
-                # Append the daily log file to the main log file
-                cat "$DAILYLOGFILE" >> $LOGFILE
+		# Append the daily log file to the main log file
+		cat "$DAILYLOGFILE" >> $LOGFILE
 
-                # Reset the ENV variables. Don't need them sitting around
-                unset AWS_ACCESS_KEY_ID
-                unset AWS_SECRET_ACCESS_KEY
-                unset PASSPHRASE
+		# Reset the ENV variables. Don't need them sitting around
+		unset AWS_ACCESS_KEY_ID
+		unset AWS_SECRET_ACCESS_KEY
+		unset PASSPHRASE
 
-        fi
+	fi
 
 }
 
