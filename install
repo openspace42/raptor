@@ -27,10 +27,6 @@ os-define_formatting
 
 define_vars
 
-### Check for any already existing installation
-
-os-check_install_version
-
 ################################################################################
 
 if [[ "${@#--return-check}" = "$@" ]]
@@ -43,6 +39,14 @@ then
         echo
         exit 1
 fi
+
+################################################################################
+
+### Check for any already existing installation
+
+os-check_install_version
+
+### All ready for installation
 
 echo "${b}Initiating install...${x}"
 echo
