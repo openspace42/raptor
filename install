@@ -1,33 +1,35 @@
 #!/bin/bash
 
-# Set bash environment error management
+### openspace bash installer v0.1.0 [https://github.com/openspace42/bash_installer]
+
+################################################################################
+
+### Set bash environment error management
 
 set -e
 set -u
 
-# Source local functions file
+### Source local functions file
 
+echo
 source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $source_dir/functions
 
-# Check for root user runtime
+### Source openspace functions file
 
-check_root
-
-################################################################################
-
-# Download and source openspace functions file
-
-download_os_functions
 source_os_functions
 
-################################################################################
+### Define formatting
 
 os-define_formatting
 
+### Define variables
+
 define_vars
 
-echo
+### Check for any already existing installation
+
+os-check_install_version
 
 ################################################################################
 
@@ -42,14 +44,10 @@ then
         exit 1
 fi
 
-################################################################################
-
-os-check_install_version
-
-################################################################################
-
-echo "${b}Initiating installer...${x}"
+echo "${b}Initiating install...${x}"
 echo
+
+################################################################################
 
 install_easyengine
 
@@ -80,19 +78,10 @@ describe_setting() {
 
 os-set_option -o backup_exclude_sites -v n -d y -p backups/local
 
-
-
 os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/ee-br/ee-br-backup"
 
+################################################################################
 
+### Mark installer as completed successfully
 
-echo "${b}Now removing installer directory...${x}"
-echo
-rm -r $source_dir
-echo "${b}Finished removing installer directory.${x}"
-echo
-
-
-
-echo "${b}Installation complete!${x}"
-echo
+touch $source_dir/install_complete

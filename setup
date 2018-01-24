@@ -1,53 +1,54 @@
 #!/bin/bash
 
-short_name="ee-br"
-author_name="openspace42"
+### openspace bash installer v0.1.0 [https://github.com/openspace42/bash_installer]
 
-# Set bash environment error management
+################################################################################
+
+### Set bash environment error management
 
 set -e
 set -u
 
-# Check root
+### Source local functions file
 
-if [[ $EUID -ne 0 ]]
-then
-        echo "${r}${b}This script must be run as root${x}"
-        echo
-        echo "${b}Exiting...${x}"
-        echo
-        exit 1
-fi
+echo
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $source_dir/functions
+
+### Check for root user runtime
+
+check_root
+
+### Download and source openspace functions file
+
+while getopts ":b" arguments; do
+    case $arguments in
+        b)	bleeding_edge="-b"
+            echo "Using bleeding_edge bash_functions as per | -b |."
+            echo
+            ;;
+        \?)	echo "Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |."
+            echo
+            exit
+            ;;
+    esac
+done
+
+OPTIND=1
+
+download_os_functions ${bleeding_edge-}
+source_os_functions
+
+### Define formatting
+
+os-define_formatting
+
+### Define variables
+
+define_vars
 
 ################################################################################
 
-echo
+### Actually run the installer
 
-now="$(date +"%Y-%m-%d_%H-%M-%S")"
-source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-### Define latest version
-export latest_vers="$(grep 'refs/tags/' $source_dir/.git/packed-refs | tail -1 | awk '{print $2}' | sed "s|refs/tags/v||g")"
-
-base_dir=/root/$author_name
-install_dir=$base_dir/$short_name
-conf_dir=$install_dir/conf
-
-if [ -f $conf_dir/beta ]
-then
-        echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
-	echo
-        echo "Installing bleeding-edge version of $short_name up to latest git commit."
-        echo
-        echo "[delete the | $conf_dir/beta | file to cancel your opt-in to bleeding-edge versions]"
-        echo
-        echo "- * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! - * - !!! -"
-        ( cd $source_dir && bash ./install --return-check )
-else
-        echo "Installing $short_name v$latest_vers"
-        echo
-	( cd $source_dir && git checkout tags/v$latest_vers && bash ./install --return-check )
-fi
-
-echo "Exiting installer"
-echo
+os-run_install

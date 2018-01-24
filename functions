@@ -1,5 +1,21 @@
 #!/bin/bash
 
+### openspace bash installer v0.1.0 [https://github.com/openspace42/bash_installer]
+
+os_bash_functions_version=0.1.0
+
+################################################################################
+
+define_vars() {
+
+	proj_name="Lorem-Ipsum-Dolor"
+	short_name="lid"
+	author_name="your_name_here"
+
+	os-define_vars
+
+}
+
 ################################################################################
 
 check_root() {
@@ -17,15 +33,16 @@ check_root() {
 
 download_os_functions() {
 
-	base_dir=/root/openspace42
+	clone_author=openspace42
 	clone_name=bash_functions
+	base_dir=/root/$clone_author
 	clone_dir=$base_dir/$clone_name
 	if [ -d $clone_dir ]
 	then
 		rm -r ${clone_dir:?}
 	fi
 	mkdir -p $base_dir
-	( cd $base_dir && git clone https://github.com/openspace42/$clone_name &> /dev/null )
+	( cd $base_dir && git clone https://github.com/$clone_author/$clone_name && cd $clone_name && if [ ! ${bleeding_edge-null} = "-b" ]; then git checkout tags/v$os_bash_functions_version; fi &> /dev/null )
 
 }
 
@@ -39,35 +56,6 @@ source_os_functions() {
 }
 
 ################################################################################
-
-define_vars() {
-
-	proj_name="EasyEngine-Backup-Restore"
-	short_name="ee-br"
-	author_name="openspace42"
-
-	os-define_vars
-
-}
-
-################################################################################
-
-check_config_file() {
-
-	if [ ! -f $install_dir/config ]
-	then
-		echo "${r}${b} | $install_dir/config | file NOT found.${x}"
-		echo
-		echo "${b}If you've deleted yours by mistake, re-run the initial installation.${x}"
-		echo
-		echo "${b}If instead you've moved it to another location, simply move it back to | $install_dir |.${x}"
-		echo
-	        echo "${b}Exiting...${x}"
-	        echo
-	        exit 1
-	fi
-
-}
 
 install_easyengine() {
 
