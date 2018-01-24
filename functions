@@ -8,9 +8,9 @@ os_bash_functions_version=0.1.0
 
 define_vars() {
 
-	proj_name="Lorem-Ipsum-Dolor"
-	short_name="lid"
-	author_name="your_name_here"
+	proj_name="EasyEngine-Backup-Restore"
+	short_name="ee-br"
+	author_name="openspace42"
 
 	os-define_vars
 
