@@ -34,15 +34,15 @@ os-read_conf_settings
 
 ################################################################################
 
-purge_incomplete_archives
+os-br_purge_incomplete_archives
 
-purge_dirs
+os-br_purge_dirs
 
-create_dirs backup
+os-br_create_dirs backup
 
-update_storage_info
+os-br_update_storage_info
 
-purge_backups
+os-br_purge_backups
 
 backup_locally
 
@@ -70,11 +70,11 @@ then
 
 	########################################################################
 
-	restore_from_S3 test
+	os-br_restore_from_S3 test
 
 	########################################################################
 
-	backup_to_S3
+	os-br_backup_to_S3
 
 else
 
@@ -89,3 +89,4 @@ fi
 
 echo "${g}${b}Backup complete!${x}"
 echo
+os-br_purge_dirs

@@ -605,10 +605,10 @@ restore_from_standalone() {
 		echo
 		echo "${b}Ok, no problem. Make sure you populate the | /root/$short_name-restore/ | directory with these 4 files/directories from your standalone backup:${x}"
 		echo
-		echo "${b}1] /root/$short_name-restore/config${x}"
-		echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
-		echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
-		echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
+echo "${b}1] /root/$short_name-restore/config${x}"
+echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
+echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
+echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
 		echo
 		echo "${r}${b}If you don't correctly place all 4 files/directories, the restore will not work correctly [you will be alerted if something is wrong further along this script]${x}"
 		echo

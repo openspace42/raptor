@@ -170,11 +170,11 @@ then
 	install_easyengine
 fi
 
-purge_incomplete_archives
+os-br_purge_incomplete_archives
 
-purge_dirs
+os-br_purge_dirs
 
-create_dirs restore
+os-br_create_dirs restore
 
 ################################################################################
 
@@ -209,7 +209,7 @@ done
 if [ $restore_source = "here" ]
 then
 
-	restore_from_here
+	os-br_restore_from_here
 
 else
 
@@ -252,11 +252,19 @@ else
 	if [ $restore_type = "s3" ]
 	then
 
-		restore_from_S3
+		os-br_restore_from_S3
 
 	else
 
-		restore_from_standalone
+		os-br_restore_from_standalone_content_description() {
+			echo "${b}1] /root/$short_name-restore/config${x}"
+			echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
+			echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
+			echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
+		}
+
+		os-br_restore_from_standalone
+
 		echo
 
 	fi
@@ -273,11 +281,11 @@ then
 	echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
 	echo
 
-	create_dirs backup
+	os-br_create_dirs backup
 
-	update_storage_info noS3
+	os-br_update_storage_info noS3
 
-	purge_backups
+	os-br_purge_backups
 
 	backup_locally
 
@@ -763,7 +771,7 @@ do
 
 done
 
-purge_dirs
+os-br_purge_dirs
 
 echo "${g}${b}Restore complete!${x}"
 echo
