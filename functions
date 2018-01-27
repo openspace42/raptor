@@ -159,12 +159,7 @@ install_easyengine() {
 
 }
 
-
-
-backup_locally() {
-
-	echo "${b}Now backing up locally...${x}"
-	echo
+backup_locally_loop() {
 
 	### Add hardcoded sites to exclude to the user-specified ones
 
@@ -208,7 +203,5 @@ backup_locally() {
 			fi
 		fi
 	done
-	echo "${g}${b}Finished local backup.${x}"
-	echo
 
 }

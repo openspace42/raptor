@@ -44,22 +44,7 @@ os-br_update_storage_info
 
 os-br_purge_backups
 
-backup_locally
-
-echo "${b}Now compressing backup...${x}"
-echo
-
-cd $tmp_dir
-
-### Tar.bz2 this backup archive.
-
-tar cSf - $backup_name -P | pv -s $(du -sb $backup_name | awk '{print $1}') | bzip2 > $backups_archive_dir/$backup_name.tar.bz2.incomplete
-
-mv $backups_archive_dir/$backup_name.tar.bz2.incomplete $backups_archive_dir/$backup_name.tar.bz2
-
-echo
-echo "${g}${b}Finished compressing backup and stored in | $backups_archive_dir/ | ${x}"
-echo
+os-br_backup_locally
 
 ################################################################################
 
