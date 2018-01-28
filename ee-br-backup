@@ -1,34 +1,37 @@
 #!/bin/bash
 
-# Set bash environment error management
+### openspace Bash-Framework v0.1.0 [https://github.com/openspace42/Bash-Framework]
+
+################################################################################
+
+### Set bash environment error management
 
 set -e
 set -u
 
-# Source local functions file
+### Source local functions file
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $script_dir/functions
+echo
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $source_dir/functions
 
-# Check for root user runtime
-
-check_root
-
-################################################################################
-
-# Source openspace functions file
+### Source openspace functions file
 
 source_os_functions
 
-################################################################################
-
-os-log_script
-
-################################################################################
+### Define formatting
 
 os-define_formatting
 
+### Define variables
+
 define_vars
+
+################################################################################
+
+os-check_root
+
+os-log_script
 
 os-read_conf_settings
 
@@ -74,4 +77,5 @@ fi
 
 echo "${g}${b}Backup complete!${x}"
 echo
+
 os-br_purge_dirs

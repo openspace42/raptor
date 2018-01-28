@@ -1,38 +1,43 @@
 #!/bin/bash
 
-# Set bash environment error management
+### openspace Bash-Framework v0.1.0 [https://github.com/openspace42/Bash-Framework]
+
+################################################################################
+
+### Set bash environment error management
 
 set -e
 set -u
 
-# Source local functions file
+### Source local functions file
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $script_dir/functions
+echo
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $source_dir/functions
 
-# Check for root user runtime
-
-check_root
-
-################################################################################
-
-# Source openspace functions file
+### Source openspace functions file
 
 source_os_functions
 
-################################################################################
-
-os-head_script
-
-################################################################################
+### Define formatting
 
 os-define_formatting
 
+### Define variables
+
 define_vars
+
+################################################################################
+
+os-check_root
+
+os-head_script
 
 os-read_conf_settings
 
 ################################################################################
+
+### Read ee-br specific restore script arguments
 
 while getopts ":ibdp:l:e:" arguments; do
 	case $arguments in
@@ -113,62 +118,14 @@ then
 	fi
 fi
 
-#if [[ ! "${@#--skip-ee-install}" = "$@" ]]
-#then
-#	echo "${r}${b}- Not [re-]installing EasyEngine as per | --skip-ee-install |...${x}"
-#	echo
-#	skip_ee_install=y
-#fi
-
-#if [[ ! "${@#--skip-backup}" = "$@" ]]
-#then
-#	echo "${r}${b}- Skipping current sites backup as per | --skip-backup |...${x}"
-#	echo
-#	skip_backup=y
-#fi
-
-#if [[ ! "${@#--delete-existing}" = "$@" ]]
-#then
-#	echo "${r}${b}- Deleting any already existing site to restore without asking as per | --delete-existing |...${x}"
-#	echo
-#	delete_existing=y
-#fi
-
-#if [[ ! "${@#--enable-php=y}" = "$@" ]]
-#then
-#	echo "${b}- Activating PHP on any NON wordpress site to restore without asking as per | --enable-php=y |...${x}"
-#	echo
-#	enable_php=y
-#elif [[ ! "${@#--enable-php=n}" = "$@" ]]
-#then
-#	echo "${b}- NOT activating PHP on any NON wordpress site to restore without asking as per | --enable-php=n |...${x}"
-#	echo
-#	enable_php=n
-#fi
-
-#if [[ ! "${@#--activate-le=y}" = "$@" ]]
-#then
-#	echo "${b}- Provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=y |...${x}"
-#	echo
-#	enable_le=y
-#elif [[ ! "${@#--activate-le=o}" = "$@" ]]
-#then
-#	echo "${b}- Provisioning LetsEncrypt TLS certificate OPPORTUNISTICALLY for restored sites without asking as per | --enable-php=o |...${x}"
-#	echo
-#	enable_le=o
-#elif [[ ! "${@#--activate-le=n}" = "$@" ]]
-#then
-#	echo "${b}- NOT provisioning LetsEncrypt TLS certificate for restored sites without asking as per | --enable-php=n |...${x}"
-#	echo
-#	enable_le=n
-#fi
-
 ################################################################################
 
 if [ ! "${skip_ee_install:-null}" = "y" ]
 then
 	install_easyengine
 fi
+
+################################################################################
 
 os-br_purge_incomplete_archives
 
@@ -178,107 +135,23 @@ os-br_create_dirs restore
 
 ################################################################################
 
-choice="${b}Is the backup you're trying to restore stored locally on this machine [i.e. you're trying to restore a previous state of this running instance of easyengine] or is it stored elsewhere [i.e. you're changing machine or your previous machine's data was wiped or lost]? ${x}"
-echo "$choice"
-echo
-options=("backup file stored locally" "backup file stored elsewhere" "exit")
-select opt in "${options[@]}"
-do
-	echo
-	case $opt in
-		"backup file stored locally")
-		restore_source=here
-		break
-		;;
-		"backup file stored elsewhere")
-		restore_source=elsewhere
-		break
-		;;
-		"exit")
-		echo "${b}Exiting...${x}"
-		echo
-		exit
-		;;
-		*)
-		echo "${r}${b}Invalid option. Retry...${x}"
-		echo
-		;;
-	esac
-done
+os-br_restore_from_standalone_content_description() {
+	echo "${b}1] /root/$short_name-restore/config${x}"
+	echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
+	echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
+	echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
+}
 
-if [ $restore_source = "here" ]
-then
-
-	os-br_restore_from_here
-
-else
-
-	if [ "$backup_location" = "s3" ]
-	then
-		echo "${b}You've previously set up an S3 file storage server connection on this machine.${x}"
-		echo
-		choice="${b}Do you want to restore from S3 or from a standalone $short_name backup file you have stored individually? ${x}"
-		echo "$choice"
-		echo
-		options=("S3" "standalone" "exit")
-		select opt in "${options[@]}"
-		do
-			echo
-			case $opt in
-				"S3")
-				restore_type=s3
-				break
-				;;
-				"standalone")
-				restore_type=standalone
-				break
-				;;
-				"exit")
-				echo "${b}Exiting...${x}"
-				echo
-				exit
-				;;
-				*)  echo "${r}${b}Invalid option. Retry...${x}"
-				echo
-				;;
-			esac
-		done
-	else
-		restore_type=standalone
-	fi
-
-
-
-	if [ $restore_type = "s3" ]
-	then
-
-		os-br_restore_from_S3
-
-	else
-
-		os-br_restore_from_standalone_content_description() {
-			echo "${b}1] /root/$short_name-restore/config${x}"
-			echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
-			echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
-			echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
-		}
-
-		os-br_restore_from_standalone
-
-		echo
-
-	fi
-
-fi
+os-br_launch_restore
 
 ################################################################################
+
+### Perform a [last] backup of this currently running installation just in case
 
 if [ ! "${skip_backup:-null}" = "y" ]
 then
 
-	### Perform a [last] backup of this currently running installation just in case
-
-	echo "${b}Now backing up [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
+	echo "${b}Now performing a last backup [locally - no S3 of course] this machine's currently running $short_name installation just in case...${x}"
 	echo
 
 	os-br_create_dirs backup
@@ -287,20 +160,7 @@ then
 
 	os-br_purge_backups
 
-	backup_locally
-
-	echo "${b}Now compressing backup...${x}"
-	echo
-
-	cd $tmp_dir
-
-	### Tar.bz2 this backup archive. Give local backup a custom name so that it's clear it's the last one before a rollback in time
-
-	tar cSf - $backup_name -P | pv -s $(du -sb $backup_name | awk '{print $1}') | bzip2 > $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2.incomplete
-
-	mv $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2.incomplete $backups_archive_dir/$backup_name-last-backup-before-"$now"-restore.tar.bz2
-
-	echo
+	backup_locally last
 
 	### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
@@ -329,21 +189,10 @@ fi
 
 ################################################################################
 
+### Perform ee-br specific restore on this running machine
+
 echo "${b}Now restoring your old easyengine installation from backup...${x}"
 echo
-
-if [ $restore_source = "here" ]
-then
-	restore_file_name="$(echo "$sel_backup_file" | sed 's|./||g' | sed 's/-last-backup.*-restore//' | sed 's/.tar.bz2//g')"
-	restore_file_path=$restores_dir/local/$restore_file_name
-else
-	if [ $restore_type = "s3" ]
-	then
-		restore_file_path=$restores_dir/s3
-	else
-		restore_file_path="/root/$short_name-restore"
-	fi
-fi
 
 ### Add hardcoded sites to exclude to the user-specified ones
 
