@@ -29,7 +29,7 @@ define_vars
 
 ################################################################################
 
-os-check_root
+check_root
 
 os-head_script
 
@@ -160,7 +160,7 @@ then
 
 	os-br_purge_backups
 
-	backup_locally last
+	os-br_backup_locally last
 
 	### If not restoring a previous state of this same installation, then move the backups directory to an "old" named one.
 
