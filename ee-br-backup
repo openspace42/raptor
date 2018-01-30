@@ -75,7 +75,7 @@ then
 	rm -r ${tmp_dir:?}
 fi
 
+os-br_purge_dirs
+
 echo "${g}${b}Backup complete!${x}"
 echo
-
-os-br_purge_dirs
