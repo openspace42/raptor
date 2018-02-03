@@ -1,7 +1,5 @@
 #!/bin/bash
 
-### openspace bash installer v0.1.0 [https://github.com/openspace42/bash_installer]
-
 ################################################################################
 
 ### Set bash environment error management

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### openspace bash installer v0.1.0 [https://github.com/openspace42/bash_installer]
+### openspace Bash-Framework v0.1.0 [https://github.com/openspace42/Bash-Framework]
 
 os_bash_functions_version=0.1.2
 

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-### openspace Bash-Framework v0.1.0 [https://github.com/openspace42/Bash-Framework]
-
 ################################################################################
 
 ### Set bash environment error management
