@@ -47,12 +47,25 @@ define_vars
 
 ################################################################################
 
-### Check for old ee-br named dir
+####################
+### Migration extras
+####################
+### Check for old ee-br named dir and renames it to raptor
 
 if [ -d "/root/openspace42/ee-br" ]
 then
   mv "/root/openspace42/ee-br" "/root/openspace42/raptor"
 fi
+
+### Check for old ee-sftp dir
+
+if [ -d "/root/openspace42/ee-sftp" ]
+then
+  rm -r "/root/openspace42/ee-sftp"
+fi
+####################
+###### Migration end
+####################
 
 ### Actually run the installer
 

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Set bash environment error management
+
+set -e
+set -u
+
+# Source local functions file
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $script_dir/functions
+
+# Check for root user runtime
+
+check_root
+
+################################################################################
+
+# Source openspace functions file
+
+source_os_functions
+
+################################################################################
+
+os-define_formatting
+
+define_vars
+
+echo
+
+################################################################################
+
+if [ $# -eq 0 ]
+then
+        echo "${r}${b}No argument supplied for function | ${FUNCNAME[0]} |.${x}"
+        echo
+        os-exit_function
+fi
+
+################################################################################
+
+echo "${b}Adding SFTP user | ${g}$1${x}${b} |...${x}"
+echo
+
+adduser --gecos "" $1
+echo
+adduser $1 $sftp_group
+echo
+chown root:root "/home/$1/"
+
+mkdir "/home/$1/www/"
+chown "$1":"$1" "/home/$1/www/"
+
+echo "${b}Finished adding SFTP user.${x}"
+echo

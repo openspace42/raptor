@@ -12,6 +12,9 @@ define_vars() {
 	short_name="raptor"
 	author_name="openspace42"
 
+	ssh_config_file="/etc/ssh/sshd_config"
+	sftp_group="sftp_access"
+
 	os-define_vars
 
 }
@@ -638,5 +641,156 @@ restore_loop() {
 		fi
 
 	done
+
+}
+
+choose_local_user() {
+
+	currusers="$(cat /etc/passwd | cut -d: -f 1,3,6 | grep "[1-9][0-9][0-9][0-9]" | grep "/home" | cut -d: -f1)"
+
+	declare -a options=( $currusers )
+
+	if [ -z "$currusers" ]
+	then
+		echo "${r}${b}No NON-system users found.${x}"
+		echo
+		echo "${b}Please run the | add-user | command first.${x}"
+		echo
+		os-exit_function
+	fi
+
+
+	accept=n
+	until [ $accept = "y" ]
+	do
+
+		select sel_user in "${options[@]}"
+		do
+			echo
+			IFS=' ' read name ip <<< $sel_user
+			test -n "$sel_user" && break
+			echo ">>> Invalid Selection"
+		done
+
+		echo "${b}User $sel_user selected.${x}"
+		echo
+
+		valid=n
+		until [ $valid = "y" ]
+		do
+			read -n 1 -rp "${b}Is this the correct user?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+			case $answer in
+				"")
+				echo
+				valid=y
+				accept=y
+				;;
+				y)
+				echo -e "\\n"
+				valid=y
+				accept=y
+				;;
+				n)
+				echo -e "\\n"
+				echo "${b}No problem, please select your desired user again now...${x}"
+				echo
+				valid=y
+				accept=n
+				;;
+				e)
+				echo -e "\\n"
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo -e "\\n"
+				echo "${b}Invalid option. Retry...${x}"
+				echo
+				valid=n
+				accept=n
+				;;
+			esac
+		done
+
+	done
+
+}
+
+choose_local_site() {
+
+	if [ ! -d $www_dir ]
+	then
+		echo "${r}${b}Local backups directory [$www_dir] not found.${x}"
+		echo
+		os-exit_function
+	fi
+
+	if [ -z "$(ls -A $www_dir)" ]
+	then
+		echo "${r}${b}No sites found in | $www_dir |..${x}"
+		echo
+		os-exit_function
+	fi
+
+	choice="${b}Now choose the site you'd like to provide access to: ${x}"
+	echo "$choice"
+	echo
+
+	accept=n
+	until [ $accept = "y" ]
+	do
+
+		select sel_site in $www_dir/*
+		do
+			echo
+			test -n "$sel_site" && break
+			echo ">>> Invalid Selection"
+		done
+
+		echo "${b}Site $sel_site selected.${x}"
+		echo
+
+		valid=n
+		until [ $valid = "y" ]
+		do
+			read -n 1 -rp "${b}Is this the correct site?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+			case $answer in
+				"")
+				echo
+				valid=y
+				accept=y
+				;;
+				y)
+				echo -e "\\n"
+				valid=y
+				accept=y
+				;;
+				n)
+				echo -e "\\n"
+				echo "${b}No problem, please select your desired site again now...${x}"
+				echo
+				valid=y
+				accept=n
+				;;
+				e)
+				echo -e "\\n"
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo -e "\\n"
+				echo "${b}Invalid option. Retry...${x}"
+				echo
+				valid=n
+				accept=n
+				;;
+			esac
+		done
+
+	done
+
+	sel_site_name=${sel_site#/var/www/}
 
 }
