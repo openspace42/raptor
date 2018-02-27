@@ -47,6 +47,13 @@ define_vars
 
 ################################################################################
 
+### Check for old ee-br named dir
+
+if [ -d "/root/openspace42/ee-br" ]
+then
+  mv "/root/openspace42/ee-br" "/root/openspace42/raptor"
+fi
+
 ### Actually run the installer
 
 os-run_install
