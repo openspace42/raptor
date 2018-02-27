@@ -1,17 +1,20 @@
-# EasyEngine-Backup-Restore
+# raptor
 
 ## Features
 
 * **One touch, three minute install**
-* **Set it and forget it**, will automatically run a backup every night and email you in case of failure
-* Works with **all easyengine site types**
-* **Perfectly restores every aspect of every single easyengine website you're hosting**, from your database, to all of your files [even outside htdocs], and so on
+* **Fully installs EasyEngine** with all extra modules from the start and more
+* **Set-it-and-forget-it backups** will automatically run a backup of all your sites every night and email you in case of failure
+* Works with **all EasyEngine site types**
 * Stores backups both **locally and remotely [on S3]**
 * **Encrypts** all remote backups with a 42 character passphrase
+* **Backs up new sites automatically** with no need to perform any additional action
+* **Requires no operations inside the individual websites**, everything happens on the filesystem level completely unbeknownst to the websites themselves
+* Does NOT rely on EasyEngine's database but rather **directly scans your /var/www/ directory**
+* Performs a **test restore** before every S3 backup to **ensure remote backup integrity and passphrase match**
 * Allows you to restore your backup with **one single command** and a maximum of **three minutes of your time** even from a blank machine you've never set up before
+* **Perfectly restores every aspect of every single EasyEngine website you're hosting**, from your database, to all of your files [even outside htdocs], and so on
 * Performs DNS checks and **prompts you to activate LetsEncrypt** on newly restored sites
-* Does NOT rely on easyengine's database but rather **directly scans your /var/www/ directory**
-* Performs a test restore before every backup to **ensure remote backup integrity and passphrase match**
 * Actually [re-]installs and updates EasyEngine on install and restore operations to remove any extra step: you'll be fully operational with just one command
 * Returns **detailed errors in case of failure** to help you get your data back during a restore
 * Outputs clean and colorful logs and stores them automatically inside its own log directory
@@ -29,8 +32,8 @@ apt update
 apt -y install git
 ```
 ```
-git clone https://github.com/openspace42/EasyEngine-Backup-Restore
-bash EasyEngine-Backup-Restore/setup
+git clone https://github.com/openspace42/raptor
+bash raptor/setup
 ```
 
 
@@ -39,13 +42,13 @@ bash EasyEngine-Backup-Restore/setup
 ### Run backup script manually
 
 ```
-bash openspace42/ee-br/ee-br-backup
+bash openspace42/raptor/raptor-backup
 ```
 
 ### Confirm automatic daily run via cron is working
 
 ```
-cat logs/ee-br-backup/latest-log
+cat logs/raptor-backup/latest-log
 ```
 
 ## Restoring
@@ -57,9 +60,9 @@ cat logs/ee-br-backup/latest-log
 ### Actually restoring
 
 ```
-bash openspace42/ee-br/ee-br-restore
+bash openspace42/raptor/raptor-restore
 ```
 
 ### Advanced usage
 
-See the [Advanced Restore](https://github.com/openspace42/EasyEngine-Backup-Restore/wiki/Advanced-Restore) wiki page for runtime arguments.
+See the [Advanced Restore](https://github.com/openspace42/raptor/wiki/Advanced-Restore) wiki page for runtime arguments.
