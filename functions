@@ -91,6 +91,8 @@ install_easyengine() {
 			debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
 			apt-get install -y mailutils
 			/etc/init.d/postfix reload
+		else
+			echo
 		fi
 
 		echo "${b}Now [re-]installing and updating EasyEngine...${x}"

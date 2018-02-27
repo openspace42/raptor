@@ -50,6 +50,7 @@ define_vars
 ####################
 ### Migration extras
 ####################
+
 ### Check for old ee-br named dir and renames it to raptor
 
 if [ -d "/root/openspace42/ee-br" ]
@@ -63,6 +64,14 @@ if [ -d "/root/openspace42/ee-sftp" ]
 then
   rm -r "/root/openspace42/ee-sftp"
 fi
+
+### Check for old cron job
+
+if [ -f "/etc/cron.d/ee-br-backup" ]
+then
+  rm "/etc/cron.d/ee-br-backup"
+fi
+
 ####################
 ###### Migration end
 ####################
