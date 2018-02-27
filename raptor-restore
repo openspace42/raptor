@@ -35,7 +35,7 @@ os-read_conf_settings
 
 ################################################################################
 
-### Read ee-br specific restore script arguments
+### Read raptor-specific restore script arguments
 
 while getopts ":ibdp:l:e:" arguments; do
 	case $arguments in

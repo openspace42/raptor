@@ -8,8 +8,8 @@ os_bash_functions_version=0.1.2
 
 define_vars() {
 
-	proj_name="EasyEngine-Backup-Restore"
-	short_name="ee-br"
+	proj_name="raptor"
+	short_name="raptor"
 	author_name="openspace42"
 
 	os-define_vars
@@ -90,7 +90,7 @@ install_easyengine() {
 			/etc/init.d/postfix reload
 		fi
 
-		echo "${b}Now [re-]installing and updating easyengine...${x}"
+		echo "${b}Now [re-]installing and updating EasyEngine...${x}"
 		echo
 
 		wget -qO ee rt.cx/ee
@@ -115,7 +115,7 @@ install_easyengine() {
 		fi
 
 		echo
-		echo "${b}Finished installing easyengine.${x}"
+		echo "${b}Finished installing EasyEngine.${x}"
 		echo
 
 	else
@@ -137,7 +137,7 @@ install_easyengine() {
 		echo "${b}Finished installing dependencies.${x}"
 		echo
 
-		echo "${b}Now [re-]installing and updating easyengine...${x}"
+		echo "${b}Now [re-]installing and updating EasyEngine...${x}"
 		echo
 
 		wget -qO ee rt.cx/ee
@@ -152,7 +152,7 @@ install_easyengine() {
 		ufw allow 443
 		echo
 
-		echo "${b}Finished installing easyengine.${x}"
+		echo "${b}Finished installing EasyEngine.${x}"
 		echo
 
 	fi
@@ -208,9 +208,9 @@ backup_locally_loop() {
 
 restore_loop() {
 
-	### Perform ee-br specific restore on this running machine
+	### Perform raptor specific restore on this running machine
 
-	echo "${b}Now restoring your old easyengine installation from backup...${x}"
+	echo "${b}Now restoring your old EasyEngine installation from backup...${x}"
 	echo
 
 	### Add hardcoded sites to exclude to the user-specified ones
