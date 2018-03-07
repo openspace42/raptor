@@ -11,6 +11,12 @@ set -u
 
 echo
 source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$source_dir" == */tools ]]
+then
+        source_dir="${source_dir%/tools}"
+fi
+
 . $source_dir/functions
 
 ### Check for root user runtime

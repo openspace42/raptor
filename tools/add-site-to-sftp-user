@@ -5,10 +5,17 @@
 set -e
 set -u
 
-# Source local functions file
+### Source local functions file
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-. $script_dir/functions
+echo
+source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$source_dir" == */tools ]]
+then
+        source_dir="${source_dir%/tools}"
+fi
+
+. $source_dir/functions
 
 # Check for root user runtime
 

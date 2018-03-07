@@ -11,6 +11,7 @@ set -u
 
 if [[ "${@#--return-check}" = "$@" ]]
 then
+    echo
     echo "This script must not be run directly."
     echo
     echo "You should instead run the | setup | script and it will take care of the installation itself."
@@ -26,6 +27,12 @@ fi
 
 echo
 source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$source_dir" == */tools ]]
+then
+        source_dir="${source_dir%/tools}"
+fi
+
 . $source_dir/functions
 
 ### Source openspace functions file
