@@ -33,8 +33,6 @@ os-define_formatting
 
 define_vars
 
-echo
-
 ################################################################################
 
 echo "${b}Adding site access to SFTP user...${x}"
