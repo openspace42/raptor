@@ -27,11 +27,11 @@ check_root
 
 while getopts ":be" arguments; do
     case $arguments in
-        b)	bleeding_edge_bf="-b"
+        b)	export bleeding_edge_bf="-b"
         echo "Using bleeding-edge bash-functions as per | -b |."
         echo
         ;;
-        e)	bleeding_edge_rc="-e"
+        e)	export bleeding_edge_rc="-e"
         echo "Using bleeding-edge repo code as per | -e |."
         echo
         ;;
