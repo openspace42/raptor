@@ -45,7 +45,7 @@ download_os_functions() {
 		rm -r ${clone_dir:?}
 	fi
 	mkdir -p $base_dir
-	( cd $base_dir && git clone https://github.com/$clone_author/$clone_name && cd $clone_name && if [ ! ${bleeding_edge-null} = "-b" ]; then git checkout tags/v$os_bash_functions_version; fi &> /dev/null )
+	( cd $base_dir && git clone https://github.com/$clone_author/$clone_name && cd $clone_name && if [ ! ${bleeding_edge_bf-null} = "-b" ]; then git checkout tags/v$os_bash_functions_version; fi &> /dev/null )
 
 }
 

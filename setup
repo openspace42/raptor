@@ -27,8 +27,12 @@ check_root
 
 while getopts ":b" arguments; do
     case $arguments in
-        b)	bleeding_edge="-b"
-        echo "Using bleeding_edge bash-functions as per | -b |."
+        b)	bleeding_edge_bf="-b"
+        echo "Using bleeding-edge bash-functions as per | -b |."
+        echo
+        ;;
+        e)	bleeding_edge_rc="-e"
+        echo "Using bleeding-edge repo code as per | -e |."
         echo
         ;;
         \?)	echo "Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |."
@@ -40,7 +44,7 @@ done
 
 OPTIND=1
 
-download_os_functions ${bleeding_edge-}
+download_os_functions ${bleeding_edge_bf-}
 source_os_functions
 
 ### Define formatting
