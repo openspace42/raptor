@@ -25,7 +25,7 @@ check_root
 
 ### Download and source openspace functions file
 
-while getopts ":b" arguments; do
+while getopts ":be" arguments; do
     case $arguments in
         b)	bleeding_edge_bf="-b"
         echo "Using bleeding-edge bash-functions as per | -b |."
