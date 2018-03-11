@@ -166,6 +166,8 @@ install_easyengine() {
 
 backup_locally_loop() {
 
+	cp -r "$conf_dir" "$tmp_backup_dir"/conf/
+
 	### Add hardcoded sites to exclude to the user-specified ones
 
 	backup_exclude_sites="22222, html, roundcubemail, $backup_exclude_sites"
@@ -179,7 +181,7 @@ backup_locally_loop() {
 			then
 				echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
 				echo
-				this_site_dir="$tmp_backup_dir/$this_site"
+				this_site_dir="$tmp_backup_dir/data/$this_site"
 				mkdir -p $this_site_dir
 				wpconfigfile="$site/wp-config.php"
 				if [ -f $wpconfigfile ]
@@ -213,6 +215,8 @@ backup_locally_loop() {
 
 restore_loop() {
 
+	rsync -aAXx --delete $restore_file_path/conf/ $conf_dir/
+
 	### Perform raptor specific restore on this running machine
 
 	echo "${b}Now restoring your old EasyEngine installation from backup...${x}"
@@ -222,13 +226,13 @@ restore_loop() {
 
 	restore_exclude_sites="22222, html, roundcubemail, ${exclude_sites-null}"
 
-	for site in $restore_file_path/*
+	for site in $restore_file_path/data/*
 	do
 
 		if [ -d "$site" ]
 		then
 
-			this_site="$(echo "$site" | sed "s|${restore_file_path}/||")"
+			this_site="$(echo "$site" | sed "s|${restore_file_path}/data/||")"
 
 			if [ "${restore_exclude_sites/$this_site}" = "$restore_exclude_sites" ]
 			then
