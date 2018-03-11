@@ -41,7 +41,13 @@ os-read_conf_settings
 
 ################################################################################
 
+os-br_purge_incomplete_archives
+
+os-br_purge_dirs
+
 os-br_create_dirs restore
+
+################################################################################
 
 os-check_install_complete
 
@@ -184,12 +190,6 @@ if [ ! "${skip_ee_install:-null}" = "y" ]
 then
 	install_easyengine
 fi
-
-################################################################################
-
-os-br_purge_incomplete_archives
-
-os-br_purge_dirs
 
 ################################################################################
 
