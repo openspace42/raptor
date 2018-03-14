@@ -90,7 +90,7 @@ describe_setting() {
 
 os-set_option -o backup_exclude_sites -v n -d y -p backups/local
 
-os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/raptor/raptor-backup"
+os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/$short_name/tools/$short_name-backup"
 
 sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "$ssh_config_file"
 
