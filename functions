@@ -12,6 +12,8 @@ define_vars() {
 	short_name="raptor"
 	author_name="openspace42"
 
+	backup_ref_dir="/var/www"
+
 	ssh_config_file="/etc/ssh/sshd_config"
 	sftp_group="sftp_access"
 
