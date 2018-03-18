@@ -41,68 +41,6 @@ os-read_conf_settings
 
 ################################################################################
 
-os-br_purge_incomplete_archives
-
-os-br_purge_dirs
-
-os-br_create_dirs restore
-
-################################################################################
-
-os-check_install_complete
-
-if [ "$install_complete" = "n" ]
-then
-
-	echo "${r}${b}It appears $short_name is not currently installed or there is an incomplete installation on this machine.${x}"
-	echo
-	echo "${b}If you have an S3 backup and want to restore your previous instance of $short_name on this machine while inheriting all of your old settings, you can still run this script, although in bootstrap mode, therefore running the restore prior to actually running the $short_name installation.${x}"
-	echo
-	echo "${b}If this is not the case, you must run [or finish running] the install script first.${x}"
-	echo
-
-	ask_for_boolean_question="Run this script in bootstrap mode to restore your previous instance from S3?"
-
-	os-ask_for_boolean_def_no
-
-	if [ "$ask_for_boolean_output" = "y" ]
-	then
-		echo "${b}Ok, continuing in bootstrap mode.${x}"
-		echo
-		bootstrap_mode="y"
-	else
-		echo "${b}Ok, aborting.${x}"
-		echo
-		os-exit_function
-	fi
-
-	if [ ${bootstrap_mode-null} = "y" ]
-	then
-
-		os-setup_backup_restore_s3 -s
-		os-br_launch_restore -s
-		rsync -aAXx --delete "$restore_file_path/conf/" "$conf_dir/"
-
-		echo "${g-}${b-}Bootstrap-mode restore from S3 complete.${x-}"
-		echo
-		echo "${b-}Now launching installation.${x-}"
-		echo
-
-		os-run_install
-
-		echo "${g-}${b-}Bootstrap-mode installation complete.${x-}"
-		echo
-		echo "${b-}Exiting.${x-}"
-		echo
-
-		exit
-
-	fi
-
-fi
-
-################################################################################
-
 ### Read raptor-specific restore script arguments
 
 while getopts ":ibdp:l:e:" arguments; do
@@ -182,6 +120,68 @@ then
 		echo
 		os-exit_function
 	fi
+fi
+
+################################################################################
+
+os-br_purge_incomplete_archives
+
+os-br_purge_dirs
+
+os-br_create_dirs restore
+
+################################################################################
+
+os-check_install_complete
+
+if [ "$install_complete" = "n" ]
+then
+
+	echo "${r}${b}It appears $short_name is not currently installed or there is an incomplete installation on this machine.${x}"
+	echo
+	echo "${b}If you have an S3 backup and want to restore your previous instance of $short_name on this machine while inheriting all of your old settings, you can still run this script, although in bootstrap mode, therefore running the restore prior to actually running the $short_name installation.${x}"
+	echo
+	echo "${b}If this is not the case, you must run [or finish running] the install script first.${x}"
+	echo
+
+	ask_for_boolean_question="Run this script in bootstrap mode to restore your previous instance from S3?"
+
+	os-ask_for_boolean_def_no
+
+	if [ "$ask_for_boolean_output" = "y" ]
+	then
+		echo "${b}Ok, continuing in bootstrap mode.${x}"
+		echo
+		bootstrap_mode="y"
+	else
+		echo "${b}Ok, aborting.${x}"
+		echo
+		os-exit_function
+	fi
+
+	if [ ${bootstrap_mode-null} = "y" ]
+	then
+
+		os-setup_backup_restore_s3 -s
+		os-br_launch_restore -s
+		rsync -aAXx --delete "$restore_file_path/conf/" "$conf_dir/"
+
+		echo "${g-}${b-}Bootstrap-mode restore from S3 complete.${x-}"
+		echo
+		echo "${b-}Now launching installation.${x-}"
+		echo
+
+		os-run_install
+
+		echo "${g-}${b-}Bootstrap-mode installation complete.${x-}"
+		echo
+		echo "${b-}Exiting.${x-}"
+		echo
+
+		exit
+
+	fi
+
 fi
 
 ################################################################################
