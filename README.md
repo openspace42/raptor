@@ -42,7 +42,7 @@ bash raptor/setup
 ### Run backup script manually
 
 ```
-bash openspace42/raptor/raptor-backup
+bash openspace42/raptor/tools/raptor-backup
 ```
 
 ### Confirm automatic daily run via cron is working
@@ -60,7 +60,7 @@ cat logs/raptor-backup/latest-log
 ### Actually restoring
 
 ```
-bash openspace42/raptor/raptor-restore
+bash openspace42/raptor/tools/raptor-restore
 ```
 
 ### Advanced usage
