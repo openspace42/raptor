@@ -872,7 +872,7 @@ perform_installation() {
 	    AllowAgentForwarding no
 	    AllowTcpForwarding no
 	    X11Forwarding no
-	EOT
+EOT
 	fi
 
 	if ! grep -q $sftp_group /etc/group
