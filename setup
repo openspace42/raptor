@@ -17,7 +17,7 @@ then
         source_dir="${source_dir%/tools}"
 fi
 
-. $source_dir/functions
+. "$source_dir/functions"
 
 ### Check for root user runtime
 
@@ -44,7 +44,7 @@ done
 
 OPTIND=1
 
-download_os_functions ${bleeding_edge_bf-}
+download_os_functions "${bleeding_edge_bf-}"
 source_os_functions
 
 ### Define formatting
@@ -56,35 +56,6 @@ os-define_formatting
 define_vars
 
 ################################################################################
-
-####################
-### Migration extras
-####################
-
-### Check for old ee-br named dir and renames it to raptor
-
-if [ -d "/root/openspace42/ee-br" ]
-then
-  mv "/root/openspace42/ee-br" "/root/openspace42/raptor"
-fi
-
-### Check for old ee-sftp dir
-
-if [ -d "/root/openspace42/ee-sftp" ]
-then
-  rm -r "/root/openspace42/ee-sftp"
-fi
-
-### Check for old cron job
-
-if [ -f "/etc/cron.d/ee-br-backup" ]
-then
-  rm "/etc/cron.d/ee-br-backup"
-fi
-
-####################
-###### Migration end
-####################
 
 ### Actually run the installer
 

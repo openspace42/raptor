@@ -17,7 +17,7 @@ then
         source_dir="${source_dir%/tools}"
 fi
 
-. $source_dir/functions
+. "$source_dir/functions"
 
 ### Source openspace functions file
 
@@ -41,7 +41,9 @@ os-read_conf_settings
 
 ################################################################################
 
-### Read raptor-specific restore script arguments
+################################################################################
+############### Read any project-specific restore script arguments #############
+################################################################################
 
 while getopts ":ibdp:l:e:" arguments; do
 	case $arguments in
@@ -123,6 +125,10 @@ then
 fi
 
 ################################################################################
+################################################################################
+################################################################################
+
+################################################################################
 
 os-br_purge_incomplete_archives
 
@@ -184,13 +190,15 @@ then
 
 fi
 
-################################################################################
-
 if [ ! "${skip_ee_install:-null}" = "y" ]
 then
 	install_easyengine
 fi
 
+################################################################################
+
+################################################################################
+#################### Specify your restore-time settings here ###################
 ################################################################################
 
 os-br_restore_from_standalone_content_description() {
@@ -199,6 +207,18 @@ os-br_restore_from_standalone_content_description() {
 	echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
 	echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
 }
+
+validate_standalone_restore_content="n"
+
+restore_from_standalone_content_validation() {
+
+	### Perform standalone restore content validation
+
+}
+
+################################################################################
+################################################################################
+################################################################################
 
 os-br_launch_restore
 

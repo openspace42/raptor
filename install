@@ -33,7 +33,7 @@ then
         source_dir="${source_dir%/tools}"
 fi
 
-. $source_dir/functions
+. "$source_dir/functions"
 
 ### Source openspace functions file
 
@@ -51,7 +51,6 @@ define_vars
 
 ### Check for any already existing installation
 
-skip_backup=y
 os-check_install_version
 
 ### All ready for installation
@@ -61,66 +60,10 @@ echo
 
 ################################################################################
 
-install_easyengine
-
-echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
-echo
-
-rsync -aAXx $source_dir/ $install_dir/ --include=tools*** --include=functions --exclude="*"
-
-echo "${b}Finished installing scripts.${x}"
-echo
-
-os-set_admin_email
-
-os-setup_backup_restore
-
-describe_setting() {
-
-    echo "${b}Please specify any sites to exclude from your backups.${x}"
-    echo
-    echo "${b}Type in a comma separated list of websites to exclude.${x}"
-    echo
-    echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
-    echo
-    echo "${b}Enter | null | to skip excluding any site.${x}"
-    echo
-
-}
-
-os-set_option -o backup_exclude_sites -v n -d y -p backups/local
-
-os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/$short_name/tools/$short_name-backup"
-
-sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "$ssh_config_file"
-
-if ! grep -q "Match Group $sftp_group" "$ssh_config_file"
-then
-    cat <<EOT >> "$ssh_config_file"
-    Match Group $sftp_group
-    ChrootDirectory /home/%u
-    ForceCommand internal-sftp
-    PasswordAuthentication yes
-    PermitTunnel no
-    AllowAgentForwarding no
-    AllowTcpForwarding no
-    X11Forwarding no
-EOT
-fi
-
-if ! grep -q $sftp_group /etc/group
-then
-    addgroup "$sftp_group"
-fi
-
-service ssh restart
-
-rsync -aAXx $source_dir/ $install_dir/ --include=add-site-to-user --include=add-user --include=functions --exclude="*"
-
-os-install_dependencies -p bindfs
+perform_installation
 
 ################################################################################
 
 ### Mark installer as completed successfully
 
-touch $source_dir/install_complete
+touch "$source_dir/install_complete"

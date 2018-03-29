@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### openspace bash-framework v0.1.2 [https://github.com/openspace42/bash-framework]
+### openspace bash-framework v0.1.3 [https://github.com/openspace42/bash-framework]
 
 os_bash_functions_version=0.1.6
 
@@ -8,14 +8,26 @@ os_bash_functions_version=0.1.6
 
 define_vars() {
 
+	############################################################################
+	######################## Insert your variables here ########################
+	############################################################################
+
 	proj_name="raptor"
 	short_name="raptor"
 	author_name="openspace42"
 
+	### Set this to `y` if your project stores no data on end users' machines that could go lost during a re-install or update
+	skip_install_time_backup=y
+
+	### Set this to the directory that has the most impactful size when performing a backup [such as `/var/www/` for nginx-related projects]
 	backup_ref_dir="/var/www"
 
 	ssh_config_file="/etc/ssh/sshd_config"
 	sftp_group="sftp_access"
+
+	############################################################################
+	############################################################################
+	############################################################################
 
 	os-define_vars
 
@@ -60,6 +72,10 @@ source_os_functions() {
 
 }
 
+################################################################################
+
+################################################################################
+######################## Insert project functions here #########################
 ################################################################################
 
 install_easyengine() {
@@ -801,3 +817,79 @@ choose_local_site() {
 	sel_site_name=${sel_site#/var/www/}
 
 }
+
+################################################################################
+################################################################################
+################################################################################
+
+perform_installation() {
+
+	############################################################################
+	################### Add your install-time functions here ###################
+	############################################################################
+
+	install_easyengine
+
+	echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
+	echo
+
+	rsync -aAXx $source_dir/ $install_dir/ --include=tools*** --include=functions --exclude="*"
+
+	echo "${b}Finished installing scripts.${x}"
+	echo
+
+	os-set_admin_email
+
+	os-setup_backup_restore
+
+	describe_setting() {
+
+	    echo "${b}Please specify any sites to exclude from your backups.${x}"
+	    echo
+	    echo "${b}Type in a comma separated list of websites to exclude.${x}"
+	    echo
+	    echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
+	    echo
+	    echo "${b}Enter | null | to skip excluding any site.${x}"
+	    echo
+
+	}
+
+	os-set_option -o backup_exclude_sites -v n -d y -p backups/local
+
+	os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/$short_name/tools/$short_name-backup"
+
+	sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "$ssh_config_file"
+
+	if ! grep -q "Match Group $sftp_group" "$ssh_config_file"
+	then
+	    cat <<EOT >> "$ssh_config_file"
+	    Match Group $sftp_group
+	    ChrootDirectory /home/%u
+	    ForceCommand internal-sftp
+	    PasswordAuthentication yes
+	    PermitTunnel no
+	    AllowAgentForwarding no
+	    AllowTcpForwarding no
+	    X11Forwarding no
+	EOT
+	fi
+
+	if ! grep -q $sftp_group /etc/group
+	then
+	    addgroup "$sftp_group"
+	fi
+
+	service ssh restart
+
+	rsync -aAXx $source_dir/ $install_dir/ --include=add-site-to-user --include=add-user --include=functions --exclude="*"
+
+	os-install_dependencies -p bindfs
+
+	############################################################################
+	############################################################################
+	############################################################################
+
+}
+
+################################################################################
