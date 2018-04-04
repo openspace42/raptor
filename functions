@@ -78,109 +78,6 @@ source_os_functions() {
 ######################## Insert project functions here #########################
 ################################################################################
 
-install_easyengine() {
-
-	distro="$(lsb_release --id | cut -f2)"
-
-	if [ $distro = "Ubuntu" ]
-	then
-
-		echo "${g}${b}Detected Ubuntu distro. Proceeding with full install...${x}"
-		echo
-
-		echo "${b}Now installing dependencies...${x}"
-		echo
-		hostname="$(cat /etc/hostname)"
-		apt-add-repository ppa:duplicity-team/ppa -y
-		apt-get update
-		apt-get -y install duplicity python-pip pwgen pv python-boto composer ufw pwgen software-properties-common curl
-		pip install --upgrade pip
-		pip install boto
-		echo
-		echo "${b}Finished installing dependencies.${x}"
-		echo
-
-		read -p "${b}Also [purge and re-]install the local mail server for task notifications? (Y/n): ${x}" -n 1 -r
-		echo
-		if [[ ! $REPLY =~ ^[Nn]$ ]]
-		then
-			apt-get -y purge mailutils postfix || true
-			debconf-set-selections <<< "postfix postfix/mailname string $hostname"
-			debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-			apt-get install -y mailutils
-			/etc/init.d/postfix reload
-		fi
-		echo
-
-		echo "${b}Now [re-]installing and updating EasyEngine...${x}"
-		echo
-
-		wget -qO ee rt.cx/ee
-		bash ee || true
-		rm ee
-		source /etc/bash_completion.d/ee_auto.rc
-		ee update
-		rm /tmp/eeupdate*
-		mkdir -p /var/www/
-		chown -R www-data:www-data /var/www/
-		ufw allow 80
-		ufw allow 443
-		echo
-
-		read -p "${b}Also install full EasyEngine stack and PhpMyAdmin? (Y/n): ${x}" -n 1 -r
-		echo
-		if [[ ! $REPLY =~ ^[Nn]$ ]]
-		then
-			ufw allow 22222
-			ee stack install --all || true
-			#( cd /var/www/22222/htdocs/db/pma && composer install && sudo chown www-data: * -R )
-		fi
-
-		echo
-		echo "${b}Finished installing EasyEngine.${x}"
-		echo
-
-	else
-
-		echo "${r}${b}Detected NON-Ubuntu distro [mail notifications might not work]. Proceeding...${x}"
-		echo
-
-		echo "${b}Now installing dependencies...${x}"
-		echo
-		hostname="$(cat /etc/hostname)"
-		apt-get update
-		apt-get -y install duplicity python-pip pwgen pv python-boto ufw pwgen software-properties-common curl
-		pip install --upgrade pip
-		pip install boto
-		debconf-set-selections <<< "postfix postfix/mailname string $hostname"
-		debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-		apt-get install -y mailutils
-		echo
-		echo "${b}Finished installing dependencies.${x}"
-		echo
-
-		echo "${b}Now [re-]installing and updating EasyEngine...${x}"
-		echo
-
-		wget -qO ee rt.cx/ee
-		bash ee || true
-		rm ee
-		source /etc/bash_completion.d/ee_auto.rc
-		ee update
-		rm /tmp/eeupdate*
-		mkdir -p /var/www/
-		chown -R www-data:www-data /var/www/
-		ufw allow 80
-		ufw allow 443
-		echo
-
-		echo "${b}Finished installing EasyEngine.${x}"
-		echo
-
-	fi
-
-}
-
 backup_locally_loop() {
 
 	cp -r "$conf_dir" "$tmp_backup_dir"/conf/
@@ -828,7 +725,9 @@ perform_installation() {
 	################### Add your install-time functions here ###################
 	############################################################################
 
-	install_easyengine
+	os-install_easyengine
+	os-install_duplicity
+	os-install_mail_notifications
 
 	echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
 	echo
