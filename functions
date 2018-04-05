@@ -763,14 +763,15 @@ perform_installation() {
 	if ! grep -q "Match Group $sftp_group" "$ssh_config_file"
 	then
 	    cat <<EOT >> "$ssh_config_file"
-	    Match Group $sftp_group
-	    ChrootDirectory /home/%u
-	    ForceCommand internal-sftp
-	    PasswordAuthentication yes
-	    PermitTunnel no
-	    AllowAgentForwarding no
-	    AllowTcpForwarding no
-	    X11Forwarding no
+
+Match Group $sftp_group
+ChrootDirectory /home/%u
+ForceCommand internal-sftp
+PasswordAuthentication yes
+PermitTunnel no
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
 EOT
 	fi
 
