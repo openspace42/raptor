@@ -90,7 +90,7 @@ fi
 
 if [ -d "$backup_local_storage_path/temp" ]
 then
-	rm -r "${backup_local_storage_path/temp:?}"
+	rm -r "${backup_local_storage_path:?}/temp"
 fi
 
 os-br_purge_dirs
