@@ -192,7 +192,7 @@ fi
 
 if [ ! "${skip_ee_install:-null}" = "y" ]
 then
-	install_easyengine
+	os-install_easyengine
 fi
 
 ################################################################################
@@ -201,18 +201,20 @@ fi
 #################### Specify your restore-time settings here ###################
 ################################################################################
 
-os-br_restore_from_standalone_content_description() {
-	echo "${b}1] /root/$short_name-restore/config${x}"
-	echo "${b}2] /root/$short_name-restore/ejabberd-mnesia-backup${x}"
-	echo "${b}3] /root/$short_name-restore/etc-ejabberd${x}"
-	echo "${b}4] /root/$short_name-restore/var-lib-ejabberd${x}"
+restore_from_standalone_content_description() {
+	echo "${b}1] /root/$short_name-restore/config/${x}"
+	echo "${b}2] /root/$short_name-restore/data/${x}"
+    echo "${b}  2.1] /root/$short_name-restore/data/example.org/${x}"
+    echo "${b}    2.1.1] /root/$short_name-restore/data/example.org/htdocs/${x}"
+    echo "${b}    2.1.2] /root/$short_name-restore/data/example.org/mysqldump.sql [only for wp sites]${x}"
+    echo "${b}    2.1.3] /root/$short_name-restore/data/example.org/wp-config.php [only for wp sites]${x}"
 }
 
 validate_standalone_restore_content="n"
 
 restore_from_standalone_content_validation() {
 
-	### Perform standalone restore content validation
+	true   ### Edit this to perform standalone restore content validation
 
 }
 
