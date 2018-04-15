@@ -35,7 +35,12 @@ define_vars
 
 check_root
 
-os-log_script
+if [ $interactive = "n" ]
+then
+    os-log_script
+else
+    os-head_script
+fi
 
 os-read_conf_settings
 
