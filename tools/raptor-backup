@@ -86,7 +86,7 @@ then
     if [ "${s3_restore_test_failed-null}" = "y" ]
     then
 
-        echo "${b}Skipping S3 backup because of a previous test restore failure.${x}"
+        echo "${r}${b}Skipping S3 backup because of a previous test restore failure.${x}"
         echo
 
         rm -r "$tmp_backup_dir"
@@ -113,6 +113,11 @@ then
 fi
 
 os-br_purge_dirs
+
+if [ "${s3_restore_test_failed-null}" = "y" ]
+then
+    exit 1
+fi
 
 echo "${g}${b}Backup complete!${x}"
 echo
