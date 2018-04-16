@@ -116,7 +116,7 @@ os-br_purge_dirs
 
 if [ "${s3_restore_test_failed-null}" = "y" ]
 then
-    exit 1
+    os-exit_function
 fi
 
 echo "${g}${b}Backup complete!${x}"
