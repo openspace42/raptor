@@ -73,6 +73,7 @@ then
         then
             echo "${b}Ok, continuing anyway...${x}"
             echo
+            export lockfile_set="/tmp/$short_name-backup-running-lockfile"
         else
             echo "${b}Ok, aborting...${x}"
             echo
