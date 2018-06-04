@@ -64,7 +64,16 @@ download_os_functions() {
 	fi
 
 	mkdir -p $base_dir
-	( cd "$base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && if [ ! "${bleeding_edge_bf-null}" = "-b" ]; then git checkout "tags/v$os_bash_functions_version"; fi &> /dev/null )
+
+	( cd "$base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
+		if [ ! "${bleeding_edge_bf-null}" = "-b" ]; \
+		then \
+			git checkout "tags/v$os_bash_functions_version" && \
+			echo "$os_bash_functions_version" > "$base_dir/version_installed"; \
+		else \
+			echo "bleeding_edge" > "$base_dir/version_installed"; \
+		fi &> /dev/null \
+	)
 
 }
 
