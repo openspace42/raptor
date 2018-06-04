@@ -71,7 +71,7 @@ download_os_functions() {
 			git checkout "tags/v$os_bash_functions_version" && \
 			echo "$os_bash_functions_version" > "./version_installed"; \
 		else \
-			clone_latest_commit="$(git log -n 1 --pretty=format:"%H"  | cut -c1-7)"
+			clone_latest_commit="$(git log -n 1 --pretty=format:"%H"  | cut -c1-7)" && \
 			echo "bleeding-edge-$latest_commit" > "./version_installed"; \
 		fi &> /dev/null \
 	)
