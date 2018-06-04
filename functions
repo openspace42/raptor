@@ -55,23 +55,24 @@ download_os_functions() {
 	clone_author="openspace42"
 	clone_name="bash-functions"
 
-	base_dir=/root/$clone_author
-	clone_dir=$base_dir/$clone_name
+	clone_base_dir=/root/$clone_author
+	clone_dir=$clone_base_dir/$clone_name
 
 	if [ -d $clone_dir ]
 	then
 		rm -r ${clone_dir:?}
 	fi
 
-	mkdir -p $base_dir
+	mkdir -p $clone_base_dir
 
-	( cd "$base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
+	( cd "$clone_base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
 		if [ ! "${bleeding_edge_bf-null}" = "-b" ]; \
 		then \
 			git checkout "tags/v$os_bash_functions_version" && \
 			echo "$os_bash_functions_version" > "./version_installed"; \
 		else \
-			echo "bleeding_edge" > "./version_installed"; \
+			clone_latest_commit="$(git log -n 1 --pretty=format:"%H"  | cut -c1-7)"
+			echo "bleeding-edge-$latest_commit" > "./version_installed"; \
 		fi &> /dev/null \
 	)
 
