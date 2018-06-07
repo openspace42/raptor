@@ -25,10 +25,14 @@ check_root
 
 ### Download and source openspace functions file
 
-while getopts ":be" arguments; do
+while getopts ":ble" arguments; do
     case $arguments in
-        b)	export bleeding_edge_bf="-b"
+        b)	export custom_bf="-b"
         echo "Using bleeding-edge bash-functions as per | -b |."
+        echo
+        ;;
+        l)	export custom_bf="-l"
+        echo "Disabling bash-functions download and using local version as per | -l |."
         echo
         ;;
         e)	export bleeding_edge_rc="-e"
@@ -44,7 +48,13 @@ done
 
 OPTIND=1
 
-download_os_functions "${bleeding_edge_bf-}"
+if [ ! "${custom_bf-null}" = "-l" ]
+then
+
+    download_os_functions "${custom_bf-}"
+
+fi
+
 source_os_functions
 
 ### Define formatting
