@@ -17,8 +17,6 @@ exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 exec_dir_trim_2="$( echo ${exec_dir} | cut -f 1,2,3 -d'/')"
 exec_dir_trim_3="$( echo ${exec_dir} | cut -f 1,2,3,4 -d'/')"
 
-echo $exec_dir $exec_dir_trim_2 $exec_dir_trim_3 $exec_dir_trim_2/functions
-
 if [ -f "${exec_dir_trim_2}/functions" ]
 then
 	exec_dir_root="${exec_dir_trim_2}"
