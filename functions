@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-### openspace bash-framework v0.1.5 [https://github.com/openspace42/bash-framework]
+### openspace bash-framework v0.1.6 [https://github.com/openspace42/bash-framework]
 
 os_bash_functions_version=0.2.2
 
@@ -58,15 +58,15 @@ download_os_functions() {
 	clone_base_dir=/root/$clone_author
 	clone_dir=$clone_base_dir/$clone_name
 
+	mkdir -p $clone_base_dir
+
 	if [ -d $clone_dir ]
 	then
 		rm -r ${clone_dir:?}
 	fi
 
-	mkdir -p $clone_base_dir
-
 	( cd "$clone_base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
-		if [ ! "${bleeding_edge_bf-null}" = "-b" ]; \
+		if [ ! "${custom_bf-null}" = "-b" ]; \
 		then \
 			git checkout "tags/v$os_bash_functions_version" && \
 			echo "$os_bash_functions_version" > "./version_installed"; \
