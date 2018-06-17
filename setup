@@ -37,35 +37,58 @@ fi
 
 check_root
 
-### Download and source openspace functions file
+### Evaluate command arguments for custom-version install
 
-while getopts ":ble" arguments; do
+while getopts ":b:r:" arguments
+do
     case $arguments in
-        b)	export custom_bf="-b"
-        echo "Using bleeding-edge bash-functions as per | -b |."
-        echo
-        ;;
-        l)	export custom_bf="-l"
-        echo "Disabling bash-functions download and using local version as per | -l |."
-        echo
-        ;;
-        e)	export bleeding_edge_rc="-e"
-        echo "Using bleeding-edge repo code as per | -e |."
-        echo
-        ;;
+        b)	export custom_bf="$OPTARG"
+	        ;;
+		r)	export custom_rc="$OPTARG"
+	        ;;
         \?)	echo "Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |."
-        echo
-        exit
-        ;;
+	        echo
+	        exit
+	        ;;
     esac
 done
-
 OPTIND=1
 
-if [ ! "${custom_bf-null}" = "-l" ]
+if [ ! -z "${custom_bf-}" ]
+then
+	case $custom_bf in
+		e)	echo "Using bleeding-edge bash-functions as per | -b e |."
+			echo
+			;;
+		l)	echo "Disabling bash-functions download and using local version as per | -b l |."
+			echo
+			;;
+		*)	echo "Invalid content for | custom_bf | in function | ${FUNCNAME[0]} |."
+			echo
+			os-exit_function
+			;;
+	esac
+fi
+
+if [ ! -z "${custom_rc-}" ]
+then
+	case $custom_rc in
+		e)	echo "Using bleeding-edge repo code as per | -r e |."
+			echo
+			;;
+		*)	echo "Invalid content for | custom_rc | in function | ${FUNCNAME[0]} |."
+			echo
+			os-exit_function
+			;;
+	esac
+fi
+
+### Download and source openspace functions file
+
+if [ ! "${custom_bf-null}" = "l" ]
 then
 
-    download_os_functions "${custom_bf-}"
+    download_os_functions
 
 fi
 
