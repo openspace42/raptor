@@ -66,7 +66,7 @@ download_os_functions() {
 	fi
 
 	( cd "$clone_base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
-		if [ ! "${custom_bf-null}" = "b" ]; \
+		if [ ! "${custom_bf-null}" = "e" ]; \
 		then \
 			git checkout "tags/v$os_bash_functions_version" && \
 			echo "$os_bash_functions_version" > "./version_installed"; \
