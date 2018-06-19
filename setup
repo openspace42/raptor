@@ -65,7 +65,9 @@ then
 			;;
 		*)	echo "Invalid content for | custom_bf | in function | ${FUNCNAME[0]} |."
 			echo
-			os-exit_function
+			echo "Exiting..."
+			echo
+			exit
 			;;
 	esac
 fi
@@ -78,7 +80,9 @@ then
 			;;
 		*)	echo "Invalid content for | custom_rc | in function | ${FUNCNAME[0]} |."
 			echo
-			os-exit_function
+			echo "Exiting..."
+			echo
+			exit
 			;;
 	esac
 fi
