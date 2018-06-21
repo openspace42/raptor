@@ -57,7 +57,7 @@ OPTIND=1
 if [ ! -z "${custom_dna_version-}" ]
 then
 	case $custom_dna_version in
-		b)	echo "Using bleeding-edge dna as per | -d b |."
+		b)	echo "Using bleeding-edge dna version as per | -d b |."
 			echo
 			;;
 		l)	echo "Disabling dna download and using local version as per | -d l |."
@@ -75,7 +75,7 @@ fi
 if [ ! -z "${custom_project_version-}" ]
 then
 	case $custom_project_version in
-		b)	echo "Using bleeding-edge repo code as per | -p b |."
+		b)	echo "Using bleeding-edge project version as per | -p b |."
 			echo
 			;;
 		*)	echo "Invalid content for | custom_project_version | in function | ${FUNCNAME[0]} |."
