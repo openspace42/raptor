@@ -49,6 +49,7 @@ define_vars
 
 check_root
 
+
 ### Get arguments to pass onto the installer
 
 while getopts ":be" arguments; do
