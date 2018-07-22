@@ -33,9 +33,71 @@ fi
 
 . "$exec_dir_root/functions"
 
-### Source openspace functions file
+### Check for root user runtime
 
-source_os_functions
+check_root
+
+### Evaluate command arguments for custom-version install
+
+while getopts ":d:p:" arguments
+do
+    case $arguments in
+        d)	export custom_dna_version="$OPTARG"
+	        ;;
+		p)	export custom_project_version="$OPTARG"
+	        ;;
+        \?)	echo "Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |."
+	        echo
+	        exit
+	        ;;
+    esac
+done
+OPTIND=1
+
+if [ ! -z "${custom_dna_version-}" ]
+then
+	case $custom_dna_version in
+		b)	echo "Using bleeding-edge dna version as per | -d b |."
+			echo
+			;;
+		l)	echo "Disabling dna download and using local version as per | -d l |."
+			;;
+		*)	echo "Invalid content for | custom_dna_version | in function | ${FUNCNAME[0]} |."
+			echo
+			echo "Exiting..."
+			echo
+			exit
+			;;
+	esac
+fi
+
+if [ ! -z "${custom_project_version-}" ]
+then
+	case $custom_project_version in
+		b)	echo "Using bleeding-edge project version as per | -p b |."
+			echo
+			;;
+		*)	echo "Invalid content for | custom_project_version | in function | ${FUNCNAME[0]} |."
+			echo
+			echo "Exiting..."
+			echo
+			exit
+			;;
+	esac
+fi
+
+cd
+
+### Download and source openspace dna
+
+if [ ! "${custom_dna_version-null}" = "l" ]
+then
+
+    download_os_dna
+
+fi
+
+source_os_dna
 
 ### Define formatting
 
@@ -47,39 +109,13 @@ define_vars
 
 ################################################################################
 
-check_root
-
-### Get arguments to pass onto the installer
-
-while getopts ":be" arguments; do
-    case $arguments in
-        b)	export bleeding_edge_bf="-b"
-        echo "Using bleeding-edge bash-functions as per | -b |."
-        echo
-        ;;
-        e)	export bleeding_edge_rc="-e"
-        echo "Using bleeding-edge repo code as per | -e |."
-        echo
-        ;;
-        \?)	echo "Invalid option | -$OPTARG | for function | ${FUNCNAME[0]} |."
-        echo
-        exit
-        ;;
-    esac
-done
-
-OPTIND=1
-
-################################################################################
-
 ### Clone and upgrade
-
-cd
 
 if [ -d "./${proj_name}/" ]
 then
         rm -r "${proj_name}/"
 fi
 
-git clone https://github.com/${author_name}/${proj_name}
-bash ${proj_name}/setup ${bleeding_edge_bf-} ${bleeding_edge_rc-}
+git clone ${git_host}/${author_name}/${proj_name}
+
+os-run_install
