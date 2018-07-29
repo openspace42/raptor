@@ -1,37 +1,57 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Set bash environment error management
+################################################################################
 
-set -e
-set -u
+### Set bash environment error management
 
-### Source local functions file
+set -eu
+
+### Add padding to output
 
 echo
-source_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [[ "$source_dir" == */tools ]]
+### Determine script execution directory, install directory, and source local functions file
+
+exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+exec_dir_trim_2="$( echo ${exec_dir} | cut -f 1,2,3 -d'/')"
+exec_dir_trim_3="$( echo ${exec_dir} | cut -f 1,2,3,4 -d'/')"
+
+if [ -f "${exec_dir_trim_2}/functions" ]
 then
-        source_dir="${source_dir%/tools}"
+	exec_dir_root="${exec_dir_trim_2}"
+else
+	if [ -f "${exec_dir_trim_3}/functions" ]
+	then
+		exec_dir_root="${exec_dir_trim_3}"
+	else
+		echo "Functions file not found in any second or third level parent directory of: | $exec_dir |"
+		echo
+        exit 1
+	fi
 fi
 
-. $source_dir/functions
+. "$exec_dir_root/functions"
 
-# Check for root user runtime
+### Source openspace functions file
 
-check_root
+source_os_dna
 
-################################################################################
-
-# Source openspace functions file
-
-source_os_functions
-
-################################################################################
+### Define formatting
 
 os-define_formatting
 
+### Define variables
+
 define_vars
+
+################################################################################
+
+check_root
+
+os-head_script
+
+os-read_conf_settings
 
 ################################################################################
 
