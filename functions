@@ -1,84 +1,108 @@
 #!/usr/bin/env bash
 
-### openspace synthia bootstrap framework v0.2.1 [https://github.com/openspace42/synthia]
+### openspace synthia bootstrap framework v0.3.0 [https://github.com/openspace42/synthia]
 
-os_dna_version=0.2.6
+os_dna_version="0.3.1"
 
 ################################################################################
 
-define_vars() {
+synthia-define_vars() {
 
 	############################################################################
-	######################## Insert your variables here ########################
+	#################### Insert your initial variables here ####################
 	############################################################################
 
-	proj_name="raptor"
-	short_name="raptor"
-	author_name="openspace42"
-	git_host="https://github.com/"
+	export proj_name="raptor"
+	export author_name="openspace42"
+	export git_host="https://github.com"
 
 	### Set this to `y` if your project stores no data on end users' machines that could go lost during a re-install or update
-	skip_install_time_backup=y
+	export skip_install_time_backup="y"
 
 	### Set this to the directory that has the most impactful size when performing a backup [such as `/var/www/` for nginx-related projects]
-	backup_ref_dir="/var/www"
-
-	ssh_config_file="/etc/ssh/sshd_config"
-	sftp_group="sftp_access"
+	export backup_ref_dir="/etc/cron.d" ### Temp workaround
 
 	############################################################################
 	############################################################################
 	############################################################################
 
-	os-define_vars
+	### Do NOT edit the following line
+
+	dna-define_vars
+
+	############################################################################
+	################## Insert your additional variables here ###################
+	############################################################################
+
+	export ssh_config_file="/etc/ssh/sshd_config"
+	export sftp_group="sftp_access"
+
+	############################################################################
+	############################################################################
+	############################################################################
 
 }
 
 ################################################################################
 
-check_root() {
+synthia-define_formatting() {
+
+	r=$'\e[1;31m'
+	g=$'\e[1;32m'
+	l=$'\e[1;34m'
+	m=$'\e[1;35m'
+	y=$'\e[1;33m'
+	o=$'\e[38;5;208m'
+	c=$'\e[1;36m'
+	n=$'\e[1;39m'
+	x=$'\e[0m'
+	b=$'\033[1m'
+
+}
+
+synthia-check_root() {
 
 	if [[ $EUID -ne 0 ]]
 	then
-		echo "This script must be run as root."
+		echo "${r-}${b-}This script must be run as root.${x-}"
 		echo
-		echo "Exiting..."
+		echo "${b-}Exiting...${x-}"
 		echo
 		exit 1
 	fi
 
 }
 
-download_os_dna() {
+synthia-download_dna() {
 
 	clone_host="https://github.com"
 	clone_author="openspace42"
 	clone_name="dna"
 
-	clone_base_dir=/root/$clone_author
-	clone_dir=$clone_base_dir/$clone_name
+	clone_base_dir="/root/${clone_author}"
+	clone_dir="${clone_base_dir}/${clone_name}"
 
-	mkdir -p $clone_base_dir
+	mkdir -p "${clone_base_dir}"
 
-	if [ -d $clone_dir ]
+	if [ -d "${clone_dir}" ]
 	then
-		rm -r ${clone_dir:?}
+		rm -r "${clone_dir:?}"
 	fi
 
-	( cd "$clone_base_dir" && git clone "$clone_host/$clone_author/$clone_name" && cd "$clone_name" && \
+	( cd "${clone_base_dir}" && git clone "${clone_host}/${clone_author}/${clone_name}" && cd "$clone_name" && \
 		if [ ! "${custom_dna_version-null}" = "b" ]; \
 		then \
-			git checkout "tags/v$os_dna_version" && \
-			echo "$os_dna_version" > "./version_installed"; \
+			git checkout "tags/v${os_dna_version}" && \
+			echo "${os_dna_version}" > "./version_installed"; \
 		else \
 			clone_latest_commit="$(git log -n 1 --pretty=format:"%H"  | cut -c1-7)" && \
-			echo "bleeding-edge-$clone_latest_commit" > "./version_installed"; \
+			echo "bleeding-edge-${clone_latest_commit}" > "./version_installed"; \
 		fi &> /dev/null \
 	)
 
 }
 
-source_os_dna() {
+synthia-source_dna() {
 
 	for f in /root/openspace42/dna/functions/*
 	do
@@ -95,49 +119,88 @@ source_os_dna() {
 
 backup_locally_loop() {
 
-	cp -r "$conf_dir" "$tmp_backup_dir"/conf/
+	### Copy conf dir to $tmp_backup_dir
+
+	cp -r "${conf_dir}" "${tmp_backup_dir}/conf/"
 
 	### Add hardcoded sites to exclude to the user-specified ones
 
-	backup_exclude_sites="22222, html, roundcubemail, $backup_exclude_sites"
+	backup_exclude_sites="22222, html, roundcubemail, ${backup_exclude_sites}"
 
-	for site in $www_dir/*
-	do
-		if [ -d "$site" ]
+	### Determine the single system-wide EE proxy docker container ID
+
+	ee_proxy_container_id="$(docker ps -a -q --filter="name=nginx-proxy")"
+
+	### Hackishly extract the list of sites hosted by this instance of EE
+
+	sites=($(sudo docker exec $ee_proxy_container_id /bin/bash -c "find /etc/nginx/conf.d/ -name '*-redirect.conf' -type f -exec ls {} \;"))
+
+	### For every site...
+
+	for site in "${sites[@]}"
+    do
+
+		### Extract site name from string
+
+        this_site="$(echo "${site}" | xargs | sed 's|/etc/nginx/conf.d/||g' | sed 's|-redirect.conf||g' | tr -d '\r')"
+
+		### Determine nginx and db docker containers for this EE site
+
+		this_site_nginx_container_name="$(echo ${this_site} | tr -d '.')"
+
+        export ee_nginx_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_nginx")"
+        export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
+
+		### If this site is not on the exclusion list...
+
+		if [ "${backup_exclude_sites}/${this_site}" = "${backup_exclude_sites}" ]
 		then
-			this_site="$(echo "$site" | sed "s|${www_dir}/||")"
-			if [ "${backup_exclude_sites/$this_site}" = "$backup_exclude_sites" ]
+
+			dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
+
+			this_site_dir="${tmp_backup_dir}/data/${this_site}"
+			mkdir -p "${this_site_dir}"
+
+			wp_config_file_path="/var/www/htdocs/wp-config.php"
+
+			### If a wp-config file is found...
+
+			if $(docker exec -it ${ee_nginx_container_id} bash -c "if [ -f /var/www/htdocs/wp-config.php ]; then true; else false; fi")
 			then
-				echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
-				echo
-				this_site_dir="$tmp_backup_dir/data/$this_site"
-				mkdir -p $this_site_dir
-				wpconfigfile="$site/wp-config.php"
-				if [ -f $wpconfigfile ]
-				then
-					echo "${b}   Proceeding with ${l}wordpress${x}${b} site backup...${x}"
-					echo
-					WPDBNAME=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
-					WPDBUSER=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
-					WPDBPASS=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
-					/usr/bin/mysqldump -u $WPDBUSER -p$WPDBPASS $WPDBNAME > $this_site_dir/mysqldump.sql
-					cp $wpconfigfile $this_site_dir/wp-config.php
-				else
-					echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site backup...${x}"
-					echo
-				fi
 
-				rsync -aAXx --exclude backup --exclude conf --exclude logs "$site"/ "$this_site_dir"
+				### This is a wp site
 
-				echo "${b}   Finished backup for | $this_site |.${x}"
-				echo
+				dna-echo -m "  Proceeding with ${l-}wordpress${n-} site backup..."
+
+				wp_db_name="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wp_db_user="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wp_db_pass="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+
+				docker exec -it "${ee_db_container_id}" /usr/bin/mysqldump -u ${wp_db_user} --password=${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
+
+				### EE v4 doesn't seem to store the wp-config one level above the webroot [which is usually better].
+				### No need therefore to issue a dedicated command for it.
+				### docker cp "${ee_nginx_container_id}:/var/www/wp-config.php" "${this_site_dir}/wp-config.php"
+
 			else
-				echo "${b}*] Site | ${r}$this_site${x}${b} | is on the exclusion list.${x}"
-				echo
-				echo "${b}   Skipping...${x}"
-				echo
+
+				dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+
 			fi
+
+			### Backup htdocs dir
+
+			docker cp "${ee_nginx_container_id}:/var/www/htdocs/" "${this_site_dir}"
+
+			dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
+
+		else
+
+			dna-echo -m "*] Site | ${r-}${this_site}${n-} | is on the exclusion list."
+			dna-echo -e "Skipping..."
+
 		fi
+
 	done
 
 }
@@ -222,22 +285,22 @@ restore_loop() {
 
 						www_wp_config_file="$www_site_dir/wp-config.php"
 
-						www_WPDBNAME=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
-						www_WPDBUSER=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
-						www_WPDBPASS=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+						www_wp_db_name=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+						www_wp_db_user=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
+						www_wp_db_pass=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
 
-						old_WPDBNAME=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
-						old_WPDBUSER=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
-						old_WPDBPASS=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+						old_wp_db_name=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+						old_wp_db_user=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
+						old_wp_db_pass=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
 
 						rm "$www_wp_config_file"
 						cp "$real_wp_config_file" "$www_wp_config_file"
 
-						sed -i "s|${old_WPDBNAME}|${www_WPDBNAME}|g" "$www_wp_config_file"
-						sed -i "s|${old_WPDBUSER}|${www_WPDBUSER}|g" "$www_wp_config_file"
-						sed -i "s|${old_WPDBPASS}|${www_WPDBPASS}|g" "$www_wp_config_file"
+						sed -i "s|${old_wp_db_name}|${www_wp_db_name}|g" "$www_wp_config_file"
+						sed -i "s|${old_wp_db_user}|${www_wp_db_user}|g" "$www_wp_config_file"
+						sed -i "s|${old_wp_db_pass}|${www_wp_db_pass}|g" "$www_wp_config_file"
 
-						mysql -u"$www_WPDBUSER" -p"${www_WPDBPASS}" "${www_WPDBNAME}" < "$site/mysqldump.sql"
+						mysql -u"$www_wp_db_user" -p"${www_wp_db_pass}" "${www_wp_db_name}" < "$site/mysqldump.sql"
 
 					else
 
@@ -585,35 +648,31 @@ choose_local_user() {
 
 	currusers="$(cat /etc/passwd | cut -d: -f 1,3,6 | grep "[1-9][0-9][0-9][0-9]" | grep "/home" | cut -d: -f1)"
 
-	declare -a options=( $currusers )
+	declare -a options=( ${currusers} )
 
-	if [ -z "$currusers" ]
+	if [ -z "${currusers}" ]
 	then
-		echo "${r}${b}No NON-system users found.${x}"
-		echo
-		echo "${b}Please run the | add-user | command first.${x}"
-		echo
-		os-exit_function
+		dna-echo -e "No NON-system users found."
+		dna-echo -m "Run the | ${o-}add-user${n-} | command first."
+		dna-exit
 	fi
 
-
-	accept=n
-	until [ $accept = "y" ]
+	accept="n"
+	until [ "${accept}" = "y" ]
 	do
 
 		select sel_user in "${options[@]}"
 		do
 			echo
 			IFS=' ' read name ip <<< $sel_user
-			test -n "$sel_user" && break
+			test -n "${sel_user}" && break
 			echo ">>> Invalid Selection"
 		done
 
-		echo "${b}User $sel_user selected.${x}"
-		echo
+		dna-echo -m "User ${sel_user} selected."
 
-		valid=n
-		until [ $valid = "y" ]
+		valid="n"
+		until [ "${valid}" = "y" ]
 		do
 			read -n 1 -rp "${b}Is this the correct user?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
 			case $answer in
@@ -656,18 +715,16 @@ choose_local_user() {
 
 choose_local_site() {
 
-	if [ ! -d $www_dir ]
+	if [ ! -d "${www_dir}" ]
 	then
-		echo "${r}${b}Local backups directory [$www_dir] not found.${x}"
-		echo
-		os-exit_function
+		dna-echo -e "Local backups directory [${www_dir}] not found."
+		dna-exit
 	fi
 
-	if [ -z "$(ls -A $www_dir)" ]
+	if [ -z "$(ls -A ${www_dir})" ]
 	then
-		echo "${r}${b}No sites found in | $www_dir |..${x}"
-		echo
-		os-exit_function
+		dna-echo -e "No sites found in | ${www_dir} |.."
+		dna-exit
 	fi
 
 	choice="${b}Now choose the site you'd like to provide access to: ${x}"
@@ -736,48 +793,37 @@ choose_local_site() {
 ################################################################################
 ################################################################################
 
-perform_installation() {
+synthia-perform_installation() {
 
 	############################################################################
 	################### Add your install-time functions here ###################
 	############################################################################
 
-	os-install_easyengine
-	os-install_duplicity
-	os-install_mail_notifications
+	### This function is not EEv4-ready
+	### dna-install_easyengine
 
-	echo "${b}Now installing scripts in | $install_dir/ | ...${x}"
-	echo
+	dna-set_admin_email
+	dna-install_mail_notifications
+	dna-setup_backup_restore
 
-	rsync -aAXx $source_dir/ $install_dir/ --include=tools*** --include=functions --exclude="*"
-
-	echo "${b}Finished installing scripts.${x}"
-	echo
-
-	os-set_admin_email
-
-	os-setup_backup_restore
+	dna-install_dependencies -p "bindfs"
 
 	describe_setting() {
 
-	    echo "${b}Please specify any sites to exclude from your backups.${x}"
-	    echo
-	    echo "${b}Type in a comma separated list of websites to exclude.${x}"
-	    echo
-	    echo "${b}Example: | example.org, hello.world, site-to.exclude.tld |.${x}"
-	    echo
-	    echo "${b}Enter | null | to skip excluding any site.${x}"
-	    echo
+	    dna-echo -m "Please specify any sites to exclude from your backups."
+	    dna-echo -m "Type in a comma separated list of websites to exclude."
+	    dna-echo -m "Example: | ${y-}example.org, hello.world, site-to.exclude.tld${n-} |."
+	    dna-echo -m "Enter | ${y-}null${n-} | to skip excluding any site."
 
 	}
 
-	os-set_option -o backup_exclude_sites -v n -d y -p backups/local
+	dna-set_option -o "backup_exclude_sites" -p "backups/local" -d "y" -v "n"
 
-	os-add_cron_job -n $short_name-backup -t "8 4 * * * " -c "bash /root/openspace42/$short_name/tools/$short_name-backup"
+	dna-add_cron_job -n "${short_name}-backup" -t "8 4 * * * " -c "bash ${tools_dir}/${short_name}-backup"
 
-	sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "$ssh_config_file"
+	sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "${ssh_config_file}"
 
-	if ! grep -q "Match Group $sftp_group" "$ssh_config_file"
+	if ! grep -q "Match Group ${sftp_group}" "${ssh_config_file}"
 	then
 	    cat <<EOT >> "$ssh_config_file"
 
@@ -790,18 +836,15 @@ AllowAgentForwarding no
 AllowTcpForwarding no
 X11Forwarding no
 EOT
+
 	fi
 
-	if ! grep -q $sftp_group /etc/group
+	if ! grep -q "${sftp_group}" "/etc/group"
 	then
-	    addgroup "$sftp_group"
+	    addgroup "${sftp_group}"
 	fi
 
 	service ssh restart
-
-	rsync -aAXx $source_dir/ $install_dir/ --include=add-site-to-user --include=add-user --include=functions --exclude="*"
-
-	os-install_dependencies -p bindfs
 
 	############################################################################
 	############################################################################

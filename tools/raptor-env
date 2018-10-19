@@ -55,52 +55,6 @@ synthia-check_root
 
 ################################################################################
 
-### Head setup
-
-echo "${g-}${b-}Initiating setup...${x-}"
-echo
-
-################################################################################
-
-### Evaluate command arguments for custom-version install
-
-while getopts ":d:p:" arguments
-do
-    case $arguments in
-        d)	export custom_dna_version="$OPTARG"
-	        ;;
-		p)	export custom_project_version="$OPTARG"
-	        ;;
-        \?)	echo "${r-}${b-}Invalid option | ${n-}-$OPTARG${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |.${x-}"
-	        echo
-			echo "${b-}Exiting...${x-}"
-			echo
-	        exit 1
-	        ;;
-    esac
-done
-OPTIND=1
-
-### Download dna
-
-if [ ! -z "${custom_dna_version-}" ]
-then
-	case $custom_dna_version in
-		b)	echo "${r-}${b-}Fetching bleeding-edge dna version as per | ${n-}-d b${r-} |.${x-}"
-			echo
-			synthia-download_dna
-			;;
-		l)	echo "${r-}${b-}Disabling dna fetch and using local version as per | ${n-}-d l${r-} |.${x-}"
-			;;
-		*)	echo "${r-}${b-}Invalid content for | ${n-}custom_dna_version${r-} | in function | ${n-}${FUNCNAME[0]}${r-} |.${x-}"
-			echo
-			echo "Exiting..."
-			echo
-			exit 1
-			;;
-	esac
-fi
-
 ### Source dna
 
 synthia-source_dna
@@ -113,8 +67,18 @@ synthia-define_vars
 
 ################################################################################
 
-### Actually run the installer
+### Head shell
 
-dna-run_install
+if [[ $- == *i* ]]
+then
+        dna-echo -m "${g-}You are now inside of the raptor-env shell."
+        export PS1="\u@raptor-env:\[\e[32m\]~#\[\e[m\] "
+else
+        dna-echo -e "This file is NOT intended to be run directly."
+        dna-echo -m "It is only intended to be sourced by the command:"
+        dna-echo -m " | ${y-}bash --init-file ${exec_dir}/${proj_name}-env${n-} |"
+        dna-echo -m "to enter the developement environment of this project."
+        dna-exit
+fi
 
 ################################################################################

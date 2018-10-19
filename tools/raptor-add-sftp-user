@@ -39,7 +39,7 @@ source_os_dna
 
 ### Define formatting
 
-os-define_formatting
+dna-define_formatting
 
 ### Define variables
 
@@ -49,9 +49,9 @@ define_vars
 
 check_root
 
-os-head_script
+dna-head_script
 
-os-read_conf_settings
+dna-read_conf_settings
 
 ################################################################################
 
@@ -59,7 +59,7 @@ if [ $# -eq 0 ]
 then
         echo "${r}${b}No argument supplied for function | ${FUNCNAME[0]} |.${x}"
         echo
-        os-exit_function
+        dna-exit_function
 fi
 
 ################################################################################
