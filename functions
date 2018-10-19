@@ -153,7 +153,7 @@ backup_locally_loop() {
 
 		### If this site is not on the exclusion list...
 
-		if [ "${backup_exclude_sites}/${this_site}" = "${backup_exclude_sites}" ]
+		if [ "${backup_exclude_sites/$this_site}" = "${backup_exclude_sites}" ]
 		then
 
 			dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
@@ -170,7 +170,7 @@ backup_locally_loop() {
 
 				### This is a wp site
 
-				dna-echo -m "  Proceeding with ${l-}wordpress${n-} site backup..."
+				dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
 
 				wp_db_name="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
 				wp_db_user="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
