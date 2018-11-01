@@ -6,11 +6,15 @@
 
 set -eu
 
+################################################################################
+
 ### Add padding to output
 
 echo
 
-### Determine script execution directory, install directory, and source local functions file
+################################################################################
+
+### Determine script execution directory and install directory.
 
 exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -25,60 +29,74 @@ else
 	then
 		exec_dir_root="${exec_dir_trim_3}"
 	else
-		echo "Functions file not found in any second or third level parent directory of: | $exec_dir |"
+		echo "Functions file not found in any second or third level parent directory of: | ${exec_dir} |."
+		echo
+		echo "Exiting..."
 		echo
         exit 1
 	fi
 fi
 
+### Source local functions file.
+
 . "$exec_dir_root/functions"
-
-### Source openspace functions file
-
-source_os_dna
-
-### Define formatting
-
-dna-define_formatting
-
-### Define variables
-
-define_vars
 
 ################################################################################
 
-check_root
+### Define formatting
 
-dna-head_script
+synthia-define_formatting
+
+################################################################################
+
+### Check for root user runtime
+
+synthia-check_root
+
+################################################################################
+
+### Source dna
+
+synthia-source_dna
+
+################################################################################
+
+### Define variables
+
+synthia-define_vars
+
+################################################################################
+
+### Read conf settings
 
 dna-read_conf_settings
 
 ################################################################################
 
-echo "${b}Adding site access to SFTP user...${x}"
-echo
+### Head script
+
+dna-head_script
+
+################################################################################
+
+dna-echo -m "Now adding site access to SFTP user..."
 
 choose_local_user
 
 choose_local_site
 
-echo "${b}Adding access to site | ${g}$sel_site${x}${b} | to SFTP user | ${g}$sel_user${x}${b} |...${x}"
-echo
+dna-echo -m "Adding access to site | ${c-}$sel_site${n-} | to SFTP user | ${c-}$sel_user${n-} |..."
 
-sudo -u $sel_user mkdir -p /home/$sel_user/www/$sel_site_name
+sudo -u "${sel_user}" mkdir -p "/home/${sel_user}/www/${sel_site_name}"
 
-if ! grep -q "/home/$sel_user/www/$sel_site_name" /etc/fstab
+if ! grep -q "/home/${sel_user}/www/${sel_site_name}" "/etc/fstab"
 then
-    echo "${b}Adding line to fstab...${x}"
-    echo
-    echo "bindfs#$sel_site /home/$sel_user/www/$sel_site_name fuse force-user=$sel_user,force-group=$sel_user,create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> /etc/fstab
+    dna-echo -m "Adding line to fstab..."
+    echo "bindfs#${sel_site} /home/${sel_user}/www/${sel_site_name} fuse force-user=${sel_user},force-group=${sel_user},create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> "/etc/fstab"
 else
-    echo "${b}Site already present in fstab...${x}"
-    echo
-    echo site already added for user to fstab
+    dna-echo -m "Site already present in fstab."
 fi
 
 mount -a &> /dev/null
 
-echo "${b}Finished site access to SFTP user.${x}"
-echo
+dna-echo -m "Finished site access to SFTP user."
