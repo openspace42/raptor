@@ -205,23 +205,12 @@ backup_locally_loop() {
 
 	### Hackishly extract the list of sites hosted by this instance of EE
 
-	sites=($(sudo docker exec $ee_proxy_container_id /bin/bash -c "find /etc/nginx/conf.d/ -name '*-redirect.conf' -type f -exec ls {} \;"))
+	sites=( $(ee site list --format=text) )
 
 	### For every site...
 
-	for site in "${sites[@]}"
+	for this_site in "${sites[@]}"
     do
-
-		### Extract site name from string
-
-        this_site="$(echo "${site}" | xargs | sed 's|/etc/nginx/conf.d/||g' | sed 's|-redirect.conf||g' | tr -d '\r')"
-
-		### Determine nginx and db docker containers for this EE site
-
-		this_site_nginx_container_name="$(echo ${this_site} | tr -d '.')"
-
-        export ee_nginx_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_nginx")"
-        export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
 
 		### If this site is not on the exclusion list...
 
@@ -230,19 +219,31 @@ backup_locally_loop() {
 
 			dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
 
+			### Determine nginx and db docker containers for this EE site
+
+			this_site_nginx_container_name="$(echo ${this_site} | tr -d '.')"
+
+	        export ee_nginx_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_nginx")"
+
+			### Determine target backup directory for this site
+
 			this_site_dir="${tmp_backup_dir}/data/${this_site}"
 			mkdir -p "${this_site_dir}"
 
-			wp_config_file_path="/var/www/htdocs/wp-config.php"
+			wp_config_file_path="/var/www/wp-config.php"
 
 			### If a wp-config file is found...
 
-			if $(docker exec -it ${ee_nginx_container_id} bash -c "if [ -f /var/www/htdocs/wp-config.php ]; then true; else false; fi")
+			if $(docker exec -it ${ee_nginx_container_id} bash -c "if [ -f /var/www/wp-config.php ]; then true; else false; fi")
 			then
 
 				### This is a wp site
 
 				dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+
+				### DB container is apparently the same one for all sites now.
+				### export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
+				export ee_db_container_id="$(docker ps -a -q --filter="name=ee-global-db")"
 
 				wp_db_name="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
 				wp_db_user="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
@@ -250,9 +251,7 @@ backup_locally_loop() {
 
 				docker exec -it "${ee_db_container_id}" /usr/bin/mysqldump -u ${wp_db_user} --password=${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
 
-				### EE v4 doesn't seem to store the wp-config one level above the webroot [which is usually better].
-				### No need therefore to issue a dedicated command for it.
-				### docker cp "${ee_nginx_container_id}:/var/www/wp-config.php" "${this_site_dir}/wp-config.php"
+				docker cp "${ee_nginx_container_id}:/var/www/wp-config.php" "${this_site_dir}/wp-config.php"
 
 			else
 
