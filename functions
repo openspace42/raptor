@@ -243,7 +243,7 @@ backup_locally_loop() {
 
 				### DB container is apparently the same one for all sites now.
 				### export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
-				export ee_db_container_id="$(docker ps -a -q --filter="name=ee-global-db")"
+				export ee_db_container_id="$(docker ps -a -q --filter="name=global-db")"
 
 				wp_db_name="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
 				wp_db_user="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
