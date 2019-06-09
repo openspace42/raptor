@@ -223,7 +223,7 @@ backup_locally_loop() {
 
 			this_site_nginx_container_name="$(echo ${this_site} | tr -d '.')"
 
-	        export ee_nginx_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_nginx")"
+	        export ee_nginx_container_id="$(docker ps -a -q --filter="name=^${this_site_nginx_container_name}_nginx")"
 
 			### Determine target backup directory for this site
 
