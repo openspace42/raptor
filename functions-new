@@ -1,0 +1,916 @@
+#!/usr/bin/env bash
+
+### openspace synthia bootstrap framework
+### [https://github.com/openspace42/synthia]
+### v0.3.2
+
+dna_version="v0.3.2"
+
+################################################################################
+
+synthia-define_vars() {
+
+	############################################################################
+	#################### Insert your initial variables here ####################
+	############################################################################
+
+	export proj_name="raptor"
+	export author_name="openspace42"
+	export git_host="https://github.com"
+
+	### Set this to `y` if your project stores no data on end users' machines that could go lost during a re-install or update
+	export skip_install_time_backup="y"
+
+	### Set this to the directory that has the most impactful size when performing a backup [such as `/var/www/` for nginx-related projects]
+	export backup_ref_dir="/etc/cron.d" ### Temp workaround
+
+	############################################################################
+	############################################################################
+	############################################################################
+
+	### Do NOT edit the following line
+
+	dna-define_vars
+
+	############################################################################
+	################## Insert your additional variables here ###################
+	############################################################################
+
+	export ee_www_dir="/opt/easyengine/sites"
+	export ssh_config_file="/etc/ssh/sshd_config"
+	export sftp_group="sftp_access"
+
+	############################################################################
+	############################################################################
+	############################################################################
+
+}
+
+################################################################################
+
+synthia-define_formatting() {
+
+	r=$'\e[1;31m'
+	g=$'\e[1;32m'
+	l=$'\e[1;34m'
+	m=$'\e[1;35m'
+	y=$'\e[1;33m'
+	o=$'\e[38;5;208m'
+	c=$'\e[1;36m'
+	n=$'\e[1;39m'
+	x=$'\e[0m'
+	b=$'\033[1m'
+
+}
+
+synthia-check_root() {
+
+	if [[ $EUID -ne 0 ]]
+	then
+		echo "${r-}${b-}This script must be run as root.${x-}"
+		echo
+		echo "${b-}Exiting...${x-}"
+		echo
+		exit 1
+	fi
+
+}
+
+synthia-download_dna() {
+
+	clone_host="https://github.com"
+	clone_author="openspace42"
+	clone_name="dna"
+
+	clone_base_dir="/root/${clone_author}"
+	clone_dir="${clone_base_dir}/${clone_name}"
+
+	mkdir -p "${clone_base_dir}"
+
+	if [ "${custom_dna_version-null}" = "l" ]
+	then
+
+		export dna_selected_vers="v0.0.1-custom-local"
+
+		echo "${r-}${b-}Sourcing | ${n-}local version${r-} | of | ${n-}dna${r-} | respecting any local alteration performed as per | ${n-}-d l${r-} |.${x-}"
+
+		echo "${dna_selected_vers}" > "./version_installed"
+
+	else
+
+	if [ -d "${clone_dir}" ]
+	then
+		rm -r "${clone_dir:?}"
+	fi
+
+		( cd "${clone_base_dir}" && git clone "${clone_host}/${clone_author}/${clone_name}" && echo && cd "${clone_name}"
+
+			. ./functions/snippets
+
+			git config advice.detachedHead false
+
+			### Define latest version
+
+			export dna_latest_vers_final="$(semtag getfinal)"
+			export dna_latest_vers_tagged="$(semtag getlast)"
+			export dna_latest_vers_bl_edge="$(semtag getcurrent)"
+
+		    if [ "${custom_dna_version-null}" = "b" ]
+		    then
+
+		        export dna_selected_vers="${dna_latest_vers_bl_edge}"
+
+		        echo "${r-}${b-}Installing | ${n-}bleeding-edge version${r-} | of | ${n-}dna${r-} | up to latest git commit as per | ${n-}-d b${r-} |.${x-}"
+				echo
+
+				git fetch
+		        git reset --hard origin/master
+
+			elif [[ "${custom_dna_version-null}" == *"v"* ]]
+			then
+
+				export dna_selected_vers="${custom_dna_version}"
+
+				echo "${c-}${b-}Installing | ${n-}version ${dna_selected_vers}${c-} | of | ${n-}dna${c-} | as per | ${n-}-d ${dna_selected_vers}${c-} |.${x-}"
+				echo
+
+				git checkout "tags/${dna_selected_vers}"
+
+		    elif [ "${custom_dna_version-null}" = "t" ]
+		    then
+
+		        export dna_selected_vers="${dna_latest_vers_tagged}"
+
+		        echo "${o-}${b-}Installing | ${n-}latest-tagged version [${dna_selected_vers}]${o-} | of | ${n-}dna${o-} | [independently of its stability type] as per | ${n-}-d t${o-} |.${x-}"
+				echo
+
+		        git checkout "tags/${dna_latest_vers_tagged}"
+
+		    elif [ "${custom_dna_version-null}" = "f" ]
+			then
+
+		        export dna_selected_vers="${dna_latest_vers_final}"
+
+				echo "${y-}${b-}Installing | ${n-}latest-final version [${dna_selected_vers}]${y-} | of | ${n-}dna${y-} | as per | ${n-}-d f${y-} |.${x-}"
+				echo
+
+		        git checkout "tags/${dna_latest_vers_final}"
+
+			else
+
+				export dna_selected_vers="${dna_version}"
+
+				echo "${b-}Installing | ${g-}version [${dna_selected_vers}]${n-} | of | ${g-}dna${n-} |.${x-}"
+				echo
+
+				git checkout "tags/${dna_version}"
+
+		    fi
+
+			echo "${dna_selected_vers}" > "./version_installed"
+
+	)
+
+	fi
+
+}
+
+synthia-source_dna() {
+
+	for f in /root/openspace42/dna/functions/*
+	do
+		. $f
+	done
+
+}
+
+################################################################################
+
+################################################################################
+######################## Insert project functions here #########################
+################################################################################
+
+backup_locally_loop() {
+
+    ### Copy conf dir to $tmp_backup_dir
+
+	cp -r "${conf_dir}" "${tmp_backup_dir}/conf/"
+
+	### Add hardcoded sites to exclude to the user-specified ones
+
+	backup_exclude_sites="22222, html, roundcubemail, ${backup_exclude_sites}"
+
+	### For every site...
+
+	for site in $ee_www_dir/*
+	do
+
+		if [ -d "$site" ]
+		then
+
+			this_site="$(echo "$site" | sed "s|${ee_www_dir}/||")"
+
+			### If this site is not on the exclusion list...
+
+			if [ "${backup_exclude_sites/$this_site}" = "${backup_exclude_sites}" ]
+			then
+
+				dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
+
+				### Determine target backup directory for this site
+
+				this_site_dir="${tmp_backup_dir}/data/${this_site}"
+				mkdir -p "${this_site_dir}"
+
+				wpconfigfile="$site/wp-config.php"
+
+				### If a wp-config file is found...
+
+				if [ -f $wpconfigfile ]
+				then
+
+					### This is a wp site
+
+					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+
+					wp_db_name=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
+					wp_db_user=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
+					wp_db_pass=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
+
+					mysqldump -u ${wp_db_user} -p${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
+
+					cp "${wpconfigfile}" "${this_site_dir}/wp-config.php"
+
+				else
+
+					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+
+				fi
+
+				### Backup htdocs dir
+
+				rsync -aAXx --exclude backup --exclude conf --exclude logs "$site"/ "$this_site_dir"
+
+				dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
+
+			else
+
+				dna-echo -m "*] Site | ${r-}${this_site}${n-} | is on the exclusion list."
+				dna-echo -e "Skipping..."
+
+			fi
+
+		fi
+
+	done
+
+}
+
+restore_loop() {
+
+	rsync -aAXx --delete $restore_file_path/conf/ $conf_dir/
+
+	### Perform raptor specific restore on this running machine
+
+	echo "${b}Now restoring your old EasyEngine installation from backup...${x}"
+	echo
+
+	### Add hardcoded sites to exclude to the user-specified ones
+
+	restore_exclude_sites="22222, html, roundcubemail, ${exclude_sites-null}"
+
+	for site in $restore_file_path/data/*
+	do
+
+		if [ -d "$site" ]
+		then
+
+			this_site="$(echo "$site" | sed "s|${restore_file_path}/data/||")"
+
+			if [ "${restore_exclude_sites/$this_site}" = "$restore_exclude_sites" ]
+			then
+
+				echo "${b}*] Now evaluating site | ${g}$this_site${x}${b} |: ${x}"
+				echo
+				www_site_dir="$www_dir/$this_site"
+
+				proceed=y
+
+				if [ -d $www_site_dir ]
+				then
+
+					echo "${r}${b}   This site already exists on this machine.${x}"
+					echo
+
+					if [ "${delete_existing:-null}" = "y" ]
+					then
+						echo "${b}   Deleting site and re-creating it restoring its respective backup...${x}"
+						echo
+						ee site delete $this_site --no-prompt
+					else
+
+						read -rp "${b}   Delete it and re-create it restoring its respective backup? (Y/n): ${x}" -n 1
+						echo
+						if [[ ! $REPLY =~ ^[Nn]$ ]]
+						then
+							echo "${b}   Ok, proceeding...${x}"
+							echo
+							ee site delete $this_site --no-prompt
+						else
+							echo
+							echo "${b}   Ok, skipping...${x}"
+							echo
+							proceed=n
+						fi
+
+					fi
+				fi
+
+				if [ $proceed = y ]
+				then
+
+					ee site create $this_site
+					echo
+
+					### Test to see if site to be restored is a wordpress site and if it is restore it while replacing new database details
+
+					real_wp_config_file="$site/wp-config.php"
+					if [ -f $real_wp_config_file ]
+					then
+
+						echo "${b}   Proceeding with ${l}wordpress${x}${b} site restore...${x}"
+						echo
+
+						ee site update $this_site --wpfc
+						echo
+
+						www_wp_config_file="$www_site_dir/wp-config.php"
+
+						www_wp_db_name=`cat $www_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+						www_wp_db_user=`cat $www_wp_config_file | grep DB_USER | cut -d \' -f 4`
+						www_wp_db_pass=`cat $www_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+						old_wp_db_name=`cat $real_wp_config_file | grep DB_NAME | cut -d \' -f 4`
+						old_wp_db_user=`cat $real_wp_config_file | grep DB_USER | cut -d \' -f 4`
+						old_wp_db_pass=`cat $real_wp_config_file | grep DB_PASSWORD | cut -d \' -f 4`
+
+						rm "$www_wp_config_file"
+						cp "$real_wp_config_file" "$www_wp_config_file"
+
+						sed -i "s|${old_wp_db_name}|${www_wp_db_name}|g" "$www_wp_config_file"
+						sed -i "s|${old_wp_db_user}|${www_wp_db_user}|g" "$www_wp_config_file"
+						sed -i "s|${old_wp_db_pass}|${www_wp_db_pass}|g" "$www_wp_config_file"
+
+						mysql -u"$www_wp_db_user" -p"${www_wp_db_pass}" "${www_wp_db_name}" < "$site/mysqldump.sql"
+
+					else
+
+						echo "${b}   Proceeding with ${m}NON wordpress${x}${b} site restore...${x}"
+						echo
+
+						if [ "${enable_php:-null}" = "y" ]
+						then
+
+							echo "${b}   Activating PHP on this site...${x}"
+							echo
+							ee site update $this_site --php
+							echo
+
+						elif [ "${enable_php:-null}" = "n" ]
+						then
+							echo "${b}   NOT activating PHP on this site...${x}"
+							echo
+
+						else
+
+							read -rp "${b}   Activate PHP on restored site? (Y/n): ${x}" -n 1
+							echo
+							if [[ ! $REPLY =~ ^[Nn]$ ]]
+							then
+								echo "${b}   Ok, proceeding...${x}"
+								echo
+								ee site update $this_site --php
+								echo
+								echo
+							else
+								echo
+								echo "${b}   Ok, skipping...${x}"
+								echo
+							fi
+
+						fi
+
+					fi
+
+					rsync -aAXx --exclude wp-config.php --exclude mysqldump.sql "$site"/ "$www_site_dir"
+
+					chown -R www-data:www-data "$www_site_dir"
+
+					if [ "${enable_le:-null}" = "y" ]
+					then
+						echo "${b}   Provisioning LetsEncrypt TLS certificate for restored site...${x}"
+						echo
+						activate_le_proceed=y
+					elif [ "${enable_le:-null}" = "o" ]
+					then
+						echo "${b}   Provisioning LetsEncrypt TLS certificate for restored site if DNS checks succeed...${x}"
+						echo
+						activate_le_proceed=o
+					elif [ "${enable_le:-null}" = "n" ]
+					then
+						echo "${b}   NOT provisioning LetsEncrypt TLS certificate for restored site...${x}"
+						echo
+					else
+						read -rp "${b}   Also provision LetsEncrypt TLS certificate for restored site? (Y/n): ${x}" -n 1
+						echo
+						if [[ ! $REPLY =~ ^[Nn]$ ]]
+						then
+							echo "${b}   Ok, proceeding...${x}"
+							echo
+							activate_le_proceed=y
+						else
+							echo
+							echo "${b}   Ok, skipping...${x}"
+							echo
+						fi
+					fi
+
+					if [ "${activate_le_proceed:-null}" = "y" ] || [ "${activate_le_proceed:-null}" = "o" ]
+					then
+
+						hostname="$this_site"
+
+						declare -a dnsarray=(
+						"hostname"
+						)
+
+						# Skip IPv6 checks as EasyEngine doesn't yet support it [WTF!!!]
+
+						declare -a iparray=(
+						"v4"
+						)
+
+						declare -A digarray=(
+						[HN]=""
+						[www]="www."
+						)
+
+						dnschecktype=$hostname
+						thisipv4="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+
+						for dnstype in "${dnsarray[@]}"
+						do
+
+							for ipversion in "${iparray[@]}"
+							do
+
+								echo "${b}   Now let's make sure your site's IP$ipversion DNS settings are correct.${x}"
+								echo
+
+								digarrayiter=0
+
+								for i in "${!digarray[@]}"
+								do
+
+									digarrayiter=$((digarrayiter + 1))
+
+									echo "${b}   $digarrayiter] Now checking the ${digarray[$i]}$dnschecktype DNS record in IP$ipversion...${x}"
+									echo
+
+									accept=n
+									until [ $accept = "y" ]
+									do
+
+										if [ "$ipversion" = "v4" ]
+										then
+											thisip=$thisipv4
+											digresult="$(getent ahostsv4 "${digarray[$i]}""$dnschecktype". | head -1 |sed 's/ .*//')"
+											rectype="A"
+										else
+											thisip=$thisipv6
+											digresult="$(getent ahostsv6 "${digarray[$i]}""$dnschecktype". | grep -v "$thisipv4" | head -1 | sed 's/ .*//')"
+											rectype="AAAA"
+										fi
+
+										if [ -z "$digresult" ]
+										then
+
+											if [ ! "$dnstype" = "SRV" ]
+											then
+												echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to be at all set.${x}"
+												echo
+											else
+												echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to be at all set.${x}"
+												echo
+											fi
+
+											echo "${b}   Please ensure you set your DNS record as follows:${x}"
+											echo
+											echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+											echo
+											if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
+											then
+												if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
+												then
+													if [ "$ipversion" = "v4" ]
+													then
+														echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
+														echo
+														echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
+														echo
+													fi
+												fi
+											fi
+											result=notset
+										else
+											if [ "$digresult" = "$thisip" ]
+											then
+
+												if [ ! "$dnstype" = "SRV" ]
+												then
+													echo "${g}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record appears to resolve correctly to this server.${x}"
+													echo
+												else
+													echo "${g}${b}   The ${digarray[$i]}$dnschecktype SRV record appears to resolve correctly to this server.${x}"
+													echo
+												fi
+
+												echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+												echo
+												result=ok
+											else
+
+												if [ ! "$dnstype" = "SRV" ]
+												then
+													echo "${r}${b}   The ${digarray[$i]}$dnschecktype IP$ipversion DNS record does NOT appear to correctly resolve to this server.${x}"
+													echo
+												else
+													echo "${r}${b}   The ${digarray[$i]}$dnschecktype SRV record does NOT appear to correctly resolve to this server.${x}"
+													echo
+												fi
+
+												echo "${b}   This is the result of a DNS query for ${digarray[$i]}$dnschecktype:${x}"
+												echo
+												echo "   $digresult"
+												echo
+												echo "${b}   Please set it instead to:${x}"
+												echo
+												echo -e "   | ${digarray[$i]}$dnschecktype\\t\\t$rectype\\t$thisip |"
+												echo
+												if [ ! "${digarray[$i]}$dnschecktype" = "$hostname" ]
+												then
+													if [ $rectype = "A" ] || [ $rectype = "AAAA" ]
+													then
+														if [ "$ipversion" = "v4" ]
+														then
+															echo "${g}${b}   You can also set this record as a CNAME [suggested choice]:${x}"
+															echo
+															echo -e "   | ${digarray[$i]}$dnschecktype\\t\\tCNAME\\t$hostname |"
+															echo
+														fi
+													fi
+												fi
+												result=incorrect
+											fi
+										fi
+
+										if [ ! $result = "ok" ]
+										then
+
+											if [ "${activate_le_proceed:-null}" = "y" ]
+											then
+
+												valid=n
+												until [ $valid = "y" ]
+												do
+													read -n 1 -rp "${b}   Test again?${x} (${b}Y${x}[es]/${b}s${x}[kip]/${b}e${x}[xit]) " answer;
+													case $answer in
+														"")
+														echo
+														valid=y
+														accept=n
+														;;
+														y)
+														echo -e "\\n"
+														valid=y
+														accept=n
+														;;
+														s)
+														echo -e "\\n"
+														echo "${b}   Skipping DNS check for this record...${x}"
+														echo
+														valid=y
+														accept=y
+														;;
+														e)
+														echo -e "\\n"
+														echo "${b}   Exiting...${x}"
+														echo
+														exit
+														;;
+														*)
+														echo -e "\\n"
+														echo "${b}   Invalid option. Retry...${x}"
+														echo
+														valid=n
+														accept=n
+														;;
+													esac
+												done
+
+											else
+
+												echo "${r}${b}   DNS test failed for this record. Continuing anyway...${x}"
+												echo
+												accept=y
+
+											fi
+
+										else
+
+											accept=y
+
+										fi
+
+									done
+
+									if [ $result = ok ]
+									then
+
+										if [ $i = "HN" ]
+										then
+											le_dns_check_HN=ok
+										else
+											le_dns_check_www=ok
+										fi
+
+									fi
+
+								done
+
+								echo "${b}   Finished checking your $dnstype IP$ipversion DNS settings.${x}"
+								echo
+
+							done
+
+						done
+
+						if [ "${le_dns_check_HN:-null}" = "ok" ] && [ "${le_dns_check_www:-null}" = "ok" ]
+						then
+							echo "${g}${b}   Activating LetsEncrypt for $this_site...${x}"
+							echo
+							ee site update $this_site --le --experimental || true
+							echo
+						else
+							echo "${r}${b}   One or more DNS checks for $this_site failed and was skipped.${x}"
+							echo
+							echo "${b}   NOT activating LetsEncrypt for $this_site."
+							echo
+						fi
+
+						if [ ! -z "${le_dns_check_HN-}" ]
+						then
+							unset le_dns_check_HN
+						fi
+
+						if [ ! -z "${le_dns_check_www-}" ]
+						then
+							unset le_dns_check_www
+						fi
+
+						if [ ! -z "${activate_le_proceed-}" ]
+						then
+							unset activate_le_proceed
+						fi
+
+					fi
+
+					echo "${b}   Finished restore for | $this_site |.${x}"
+					echo
+
+				fi
+
+			else
+
+				echo "${b}*] Site | ${r}$this_site${x}${b} | is on the exclusion list.${x}"
+				echo
+				echo "${b}   Skipping...${x}"
+				echo
+
+			fi
+
+		fi
+
+	done
+
+}
+
+choose_local_user() {
+
+	currusers="$(cat /etc/passwd | cut -d: -f 1,3,6 | grep "[1-9][0-9][0-9][0-9]" | grep "/home" | cut -d: -f1)"
+
+	declare -a options=( ${currusers} )
+
+	if [ -z "${currusers}" ]
+	then
+		dna-echo -e "No NON-system users found."
+		dna-echo -m "Run the | ${o-}add-user${n-} | command first."
+		dna-exit
+	fi
+
+	accept="n"
+	until [ "${accept}" = "y" ]
+	do
+
+		select sel_user in "${options[@]}"
+		do
+			echo
+			IFS=' ' read name ip <<< $sel_user
+			test -n "${sel_user}" && break
+			echo ">>> Invalid Selection"
+		done
+
+		dna-echo -m "User ${sel_user} selected."
+
+		valid="n"
+		until [ "${valid}" = "y" ]
+		do
+			read -n 1 -rp "${b}Is this the correct user?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+			case $answer in
+				"")
+				echo
+				valid=y
+				accept=y
+				;;
+				y)
+				echo -e "\\n"
+				valid=y
+				accept=y
+				;;
+				n)
+				echo -e "\\n"
+				echo "${b}No problem, please select your desired user again now...${x}"
+				echo
+				valid=y
+				accept=n
+				;;
+				e)
+				echo -e "\\n"
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo -e "\\n"
+				echo "${b}Invalid option. Retry...${x}"
+				echo
+				valid=n
+				accept=n
+				;;
+			esac
+		done
+
+	done
+
+}
+
+choose_local_site() {
+
+	if [ ! -d "${www_dir}" ]
+	then
+		dna-echo -e "Local backups directory [${www_dir}] not found."
+		dna-exit
+	fi
+
+	if [ -z "$(ls -A ${www_dir})" ]
+	then
+		dna-echo -e "No sites found in | ${www_dir} |.."
+		dna-exit
+	fi
+
+	choice="${b}Now choose the site you'd like to provide access to: ${x}"
+	echo "$choice"
+	echo
+
+	accept=n
+	until [ $accept = "y" ]
+	do
+
+		select sel_site in $www_dir/*
+		do
+			echo
+			test -n "$sel_site" && break
+			echo ">>> Invalid Selection"
+		done
+
+		echo "${b}Site $sel_site selected.${x}"
+		echo
+
+		valid=n
+		until [ $valid = "y" ]
+		do
+			read -n 1 -rp "${b}Is this the correct site?${x} (${b}Y${x}[es]/${b}n${x}[o]/${b}e${x}[xit]) " answer;
+			case $answer in
+				"")
+				echo
+				valid=y
+				accept=y
+				;;
+				y)
+				echo -e "\\n"
+				valid=y
+				accept=y
+				;;
+				n)
+				echo -e "\\n"
+				echo "${b}No problem, please select your desired site again now...${x}"
+				echo
+				valid=y
+				accept=n
+				;;
+				e)
+				echo -e "\\n"
+				echo "${b}Exiting...${x}"
+				echo
+				exit
+				;;
+				*)
+				echo -e "\\n"
+				echo "${b}Invalid option. Retry...${x}"
+				echo
+				valid=n
+				accept=n
+				;;
+			esac
+		done
+
+	done
+
+	sel_site_name=${sel_site#/var/www/}
+
+}
+
+################################################################################
+################################################################################
+################################################################################
+
+synthia-perform_installation() {
+
+	############################################################################
+	################### Add your install-time functions here ###################
+	############################################################################
+
+	### This function is not EEv4-ready
+	### dna-install_easyengine
+
+	dna-set_admin_email
+	dna-install_mail_notifications
+	dna-setup_backup_restore
+
+	dna-install_dependencies -p "bindfs"
+
+	describe_setting() {
+
+	    dna-echo -m "Please specify any sites to exclude from your backups."
+	    dna-echo -m "Type in a comma separated list of websites to exclude."
+	    dna-echo -m "Example: | ${y-}example.org, hello.world, site-to.exclude.tld${n-} |."
+	    dna-echo -m "Enter | ${y-}null${n-} | to skip excluding any site."
+
+	}
+
+	dna-set_option -o "backup_exclude_sites" -p "backups/local" -d "y" -v "n"
+
+	dna-add_cron_job -n "${proj_name}-backup" -t "8 4 * * * " -c "bash ${tools_dir}/${proj_name}-backup"
+
+	sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "${ssh_config_file}"
+
+	if ! grep -q "Match Group ${sftp_group}" "${ssh_config_file}"
+	then
+	    cat <<EOT >> "$ssh_config_file"
+
+Match Group $sftp_group
+ChrootDirectory /home/%u
+ForceCommand internal-sftp
+PasswordAuthentication yes
+PermitTunnel no
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+EOT
+
+	fi
+
+	if ! grep -q "${sftp_group}" "/etc/group"
+	then
+	    addgroup "${sftp_group}"
+	fi
+
+	service ssh restart
+
+	############################################################################
+	############################################################################
+	############################################################################
+
+}
+
+################################################################################
