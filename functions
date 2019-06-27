@@ -234,7 +234,7 @@ backup_locally_loop() {
 
 			### If a wp-config file is found...
 
-			if $(docker exec -it ${ee_nginx_container_id} bash -c "if [ -f /var/www/wp-config.php ]; then true; else false; fi")
+			if $(docker exec ${ee_nginx_container_id} bash -c "if [ -f /var/www/wp-config.php ]; then true; else false; fi")
 			then
 
 				### This is a wp site
@@ -245,11 +245,11 @@ backup_locally_loop() {
 				### export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
 				export ee_db_container_id="$(docker ps -a -q --filter="name=global-db")"
 
-				wp_db_name="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
-				wp_db_user="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
-				wp_db_pass="$(docker exec -it ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wp_db_name="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wp_db_user="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wp_db_pass="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4 | xargs | tr '\n' ' '")"
 
-				docker exec -it "${ee_db_container_id}" /usr/bin/mysqldump -u ${wp_db_user} --password=${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
+				docker exec "${ee_db_container_id}" /usr/bin/mysqldump -u ${wp_db_user} --password=${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
 
 				docker cp "${ee_nginx_container_id}:/var/www/wp-config.php" "${this_site_dir}/wp-config.php"
 
