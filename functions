@@ -4,7 +4,7 @@
 ### [https://github.com/openspace42/synthia]
 ### v0.3.2
 
-dna_version="v0.3.2"
+dna_version="v0.3.14"
 
 ################################################################################
 
@@ -36,6 +36,7 @@ synthia-define_vars() {
 	################## Insert your additional variables here ###################
 	############################################################################
 
+	export ee_www_dir="/opt/easyengine/sites"
 	export ssh_config_file="/etc/ssh/sshd_config"
 	export sftp_group="sftp_access"
 
@@ -191,7 +192,7 @@ synthia-source_dna() {
 
 backup_locally_loop() {
 
-	### Copy conf dir to $tmp_backup_dir
+    ### Copy conf dir to $tmp_backup_dir
 
 	cp -r "${conf_dir}" "${tmp_backup_dir}/conf/"
 
@@ -199,76 +200,65 @@ backup_locally_loop() {
 
 	backup_exclude_sites="22222, html, roundcubemail, ${backup_exclude_sites}"
 
-	### Determine the single system-wide EE proxy docker container ID
-
-	ee_proxy_container_id="$(docker ps -a -q --filter="name=nginx-proxy")"
-
-	### Hackishly extract the list of sites hosted by this instance of EE
-
-	sites=( $(ee site list --format=text) )
-
 	### For every site...
 
-	for this_site in "${sites[@]}"
-    do
+	for site in $ee_www_dir/*
+	do
 
-		### If this site is not on the exclusion list...
-
-		if [ "${backup_exclude_sites/$this_site}" = "${backup_exclude_sites}" ]
+		if [ -d "$site" ]
 		then
 
-			dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
+			this_site="$(echo "$site" | sed "s|${ee_www_dir}/||")"
 
-			### Determine nginx and db docker containers for this EE site
+			### If this site is not on the exclusion list...
 
-			this_site_nginx_container_name="$(echo ${this_site} | tr -d '.')"
-
-	        export ee_nginx_container_id="$(docker ps -a -q --filter="name=^${this_site_nginx_container_name}_nginx")"
-
-			### Determine target backup directory for this site
-
-			this_site_dir="${tmp_backup_dir}/data/${this_site}"
-			mkdir -p "${this_site_dir}"
-
-			wp_config_file_path="/var/www/wp-config.php"
-
-			### If a wp-config file is found...
-
-			if $(docker exec ${ee_nginx_container_id} bash -c "if [ -f /var/www/wp-config.php ]; then true; else false; fi")
+			if [ "${backup_exclude_sites/$this_site}" = "${backup_exclude_sites}" ]
 			then
 
-				### This is a wp site
+				dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
 
-				dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+				### Determine target backup directory for this site
 
-				### DB container is apparently the same one for all sites now.
-				### export ee_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
-				export ee_db_container_id="$(docker ps -a -q --filter="name=global-db")"
+				this_site_dir="${tmp_backup_dir}/data/${this_site}"
+				mkdir -p "${this_site_dir}"
 
-				wp_db_name="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4 | xargs | tr '\n' ' '")"
-				wp_db_user="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4 | xargs | tr '\n' ' '")"
-				wp_db_pass="$(docker exec ${ee_nginx_container_id} bash -c "cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4 | xargs | tr '\n' ' '")"
+				wpconfigfile="$site/wp-config.php"
 
-				docker exec "${ee_db_container_id}" /usr/bin/mysqldump -u ${wp_db_user} --password=${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
+				### If a wp-config file is found...
 
-				docker cp "${ee_nginx_container_id}:/var/www/wp-config.php" "${this_site_dir}/wp-config.php"
+				if [ -f $wpconfigfile ]
+				then
+
+					### This is a wp site
+
+					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+
+					wp_db_name=`cat $wpconfigfile | grep DB_NAME | cut -d \' -f 4`
+					wp_db_user=`cat $wpconfigfile | grep DB_USER | cut -d \' -f 4`
+					wp_db_pass=`cat $wpconfigfile | grep DB_PASSWORD | cut -d \' -f 4`
+
+					mysqldump -u ${wp_db_user} -p${wp_db_pass} ${wp_db_name} > "${this_site_dir}/mysqldump.sql"
+
+					cp "${wpconfigfile}" "${this_site_dir}/wp-config.php"
+
+				else
+
+					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+
+				fi
+
+				### Backup htdocs dir
+
+				rsync -aAXx --exclude backup --exclude conf --exclude logs "$site"/ "$this_site_dir"
+
+				dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
 
 			else
 
-				dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+				dna-echo -m "*] Site | ${r-}${this_site}${n-} | is on the exclusion list."
+				dna-echo -e "Skipping..."
 
 			fi
-
-			### Backup htdocs dir
-
-			docker cp "${ee_nginx_container_id}:/var/www/htdocs/" "${this_site_dir}"
-
-			dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
-
-		else
-
-			dna-echo -m "*] Site | ${r-}${this_site}${n-} | is on the exclusion list."
-			dna-echo -e "Skipping..."
 
 		fi
 
