@@ -249,7 +249,7 @@ backup_locally_loop() {
 
 				### Backup htdocs dir
 
-				rsync -aAXx --exclude backup --exclude conf --exclude logs "$site"/ "$this_site_dir"
+				rsync -aAXxL "${site}/app" "$this_site_dir"
 
 				dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
 
