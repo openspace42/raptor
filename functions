@@ -40,6 +40,8 @@ synthia-define_vars() {
 	export ssh_config_file="/etc/ssh/sshd_config"
 	export sftp_group="sftp_access"
 
+	backup_excluded_sites_default="22222 html roundcubemail"
+
 	############################################################################
 	############################################################################
 	############################################################################
@@ -189,6 +191,76 @@ synthia-source_dna() {
 ################################################################################
 ######################## Insert project functions here #########################
 ################################################################################
+
+synthia-backup_data() {
+
+	backup_excluded_sites="${backup_excluded_sites_default} ${backup_excluded_sites_custom}"
+
+	backup_excluded_sites_array=$(echo ${backup_paths_default} | tr " " "\n")
+
+	for site in $ee_www_dir/*
+	do
+
+		if [ -d "$site" ]
+		then
+
+			this_site="$(echo "$site" | sed "s|${ee_www_dir}/||")"
+
+			if ! dna-check_if_array_contains $this_site "${backup_excluded_sites_array}"
+			then
+
+				dna-echo -m "*] Now evaluating site: | ${g}$this_site${n-} |:"
+
+				## determine target backup directory for this site.
+
+				this_site_dir="${tmp_backup_dir}/data/${this_site}"
+				mkdir -p "${this_site_data_dir}"
+
+				## determine whether this is a wp site.
+
+				wp_config_file_path="${site}/wp-config.php"
+
+				if [ -f "${wp_config_file_path}" ]
+				then
+
+					## this is a wp site.
+
+					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+
+					wp_db_name="(cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4"
+					wp_db_user="(cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4"
+					wp_db_pass="(cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4"
+
+					mysqldump -u "${wp_db_user}" -p"${wp_db_pass}" "${wp_db_name}" > "${this_site_dir}/mysqldump.sql"
+
+					cp "${wpconfigfile}" "${this_site_dir}/wp-config.php"
+
+				else
+
+					## this is not a wp site.
+
+					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+
+				fi
+
+				## backup htdocs dir.
+
+				rsync -aAXxL "${site}/app" "${this_site_dir}"
+
+				dna-echo -s "   Finished backup for | ${n-}${this_site}${g-} |."
+
+			else
+
+			dna-echo -m "*] Site | ${r-}${this_site}${n-} | is on the exclusion list."
+			dna-echo -e "Skipping..."
+
+		fi
+
+	fi
+
+done
+
+}
 
 backup_locally_loop() {
 
@@ -860,8 +932,7 @@ synthia-perform_installation() {
 	################### Add your install-time functions here ###################
 	############################################################################
 
-	### This function is not EEv4-ready
-	### dna-install_easyengine
+	dna-install_easyengine
 
 	dna-set_admin_email
 	dna-install_mail_notifications
