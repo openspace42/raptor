@@ -14,7 +14,7 @@ synthia-define_vars() {
 	#################### Insert your initial variables here ####################
 	############################################################################
 
-	export proj_name="raptor"
+	export project_name="raptor"
 	export author_name="openspace42"
 	export git_host="https://github.com"
 
@@ -880,7 +880,7 @@ synthia-perform_installation() {
 
 	dna-set_option -o "backup_exclude_sites" -p "backups/local" -d "y" -v "n"
 
-	dna-add_cron_job -n "${proj_name}-backup" -t "8 4 * * * " -c "bash ${tools_dir}/${proj_name}-backup"
+	dna-add_cron_job -n "${project_name}-backup" -t "8 4 * * * " -c "bash ${tools_dir}/${project_name}-backup"
 
 	sed -i "/Subsystem/c\Subsystem sftp internal-sftp" "${ssh_config_file}"
 

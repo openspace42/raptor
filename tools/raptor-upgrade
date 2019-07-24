@@ -99,16 +99,16 @@ synthia-define_vars
 
 ### Clone and upgrade
 
-if [ -d "/root/${proj_name}/" ]
+if [ -d "/root/${project_name}/" ]
 then
-        rm -r "/root/${proj_name}/"
+        rm -r "/root/${project_name}/"
 fi
 
 echo
 
 cd
 
-git clone "${git_host}/${author_name}/${proj_name}"
+git clone "${git_host}/${author_name}/${project_name}"
 
 dna-run_install
 
