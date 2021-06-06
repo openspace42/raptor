@@ -894,15 +894,15 @@ choose_local_user() {
 
 choose_local_site() {
 
-	if [ ! -d "${www_dir}" ]
+	if [ ! -d "${ee_www_dir}" ]
 	then
-		dna-echo -e "Local backups directory [${www_dir}] not found."
+		dna-echo -e "Local sites directory [${ee_www_dir}] not found."
 		dna-exit
 	fi
 
-	if [ -z "$(ls -A ${www_dir})" ]
+	if [ -z "$(ls -A ${ee_www_dir})" ]
 	then
-		dna-echo -e "No sites found in | ${www_dir} |.."
+		dna-echo -e "No sites found in | ${ee_www_dir} |.."
 		dna-exit
 	fi
 
@@ -914,7 +914,7 @@ choose_local_site() {
 	until [ $accept = "y" ]
 	do
 
-		select sel_site in $www_dir/*
+		select sel_site in $ee_www_dir/*
 		do
 			echo
 			test -n "$sel_site" && break
@@ -964,7 +964,7 @@ choose_local_site() {
 
 	done
 
-	sel_site_name=${sel_site#/var/www/}
+	sel_site_name=${sel_site#/opt/easyengine/sites/}
 
 }
 
