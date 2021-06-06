@@ -166,11 +166,11 @@ then
 
         dna-echo -e "Skipping S3 backup because of a previous test restore failure."
 
-        rm -r "$tmp_backup_dir"
+        rm -r "$backup_tmp_dir"
 
     else
 
-    	mv "$tmp_backup_dir"/* "$backup_local_storage_path/latest"
+    	mv "$backup_tmp_dir"/* "$backup_local_storage_path/latest"
 
     	############################################################################
 
@@ -180,7 +180,7 @@ then
 
 else
 
-	rm -r "$tmp_backup_dir"
+	rm -r "$backup_tmp_dir"
 
 fi
 
