@@ -425,7 +425,7 @@ synthia-calculate_backup_size() {
 
 	### add it up.
 
-	backup_total_size_estimate="$((${backup_paths_size_estimate} + ${patroni_ejabberd_db_size}))"
+	backup_total_size_estimate="$((${backup_paths_size_estimate} + 0))"
 
 	### ########################################################################
 
@@ -461,9 +461,9 @@ synthia-backup_generate_additional_paths() {
 		
 		#########
 		
-		this_site_nginx_container_name="$(echo ${this_site_name} | tr -d '.')"
-		export this_site_nginx_container_id="$(docker ps -a -q --filter="name=^${this_site_nginx_container_name}_nginx")"
-		export this_site_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
+		#this_site_nginx_container_name="$(echo ${this_site_name} | tr -d '.')"
+		#export this_site_nginx_container_id="$(docker ps -a -q --filter="name=^${this_site_nginx_container_name}_nginx")"
+		#export this_site_db_container_id="$(docker ps -a -q --filter="name=${this_site_nginx_container_name}_db")"
 
 		#########
 
