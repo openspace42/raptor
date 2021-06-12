@@ -1224,6 +1224,10 @@ synthia-perform_installation() {
 	################### Add your install-time functions here ###################
 	############################################################################
 
+	### link tools in $path.
+
+	dna-link_tools
+
 	dna-install_easyengine
 
 	dna-set_admin_email
