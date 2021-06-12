@@ -84,8 +84,6 @@ synthia-define_vars() {
 	#### [absolute, mark whether existing or generated].
 
 	declare -gA backup_paths_default_array=(
-		[/opt/easyengine/sites]="existing"
-		[/sqldump]="generated"
 	)
 
 	### ########################################################################
@@ -323,22 +321,22 @@ synthia-backup_old() {
 
 				## determine whether this is a wp site.
 
-				wp_config_file_path="${site}/app/wp-config.php"
+				this_site_wp_config_file_path="${site}/app/wp-config.php"
 
-				if [ -f "${wp_config_file_path}" ]
+				if [ -f "${this_site_wp_config_file_path}" ]
 				then
 
 					## this is a wp site.
 
 					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
 
-					wp_db_name="(cat ${wp_config_file_path} | grep DB_NAME | cut -d \' -f 4"
-					wp_db_user="(cat ${wp_config_file_path} | grep DB_USER | cut -d \' -f 4"
-					wp_db_pass="(cat ${wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4"
+					wp_db_name="(cat ${this_site_wp_config_file_path} | grep DB_NAME | cut -d \' -f 4"
+					wp_db_user="(cat ${this_site_wp_config_file_path} | grep DB_USER | cut -d \' -f 4"
+					wp_db_pass="(cat ${this_site_wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4"
 
 					mysqldump -u "${wp_db_user}" -p"${wp_db_pass}" "${wp_db_name}" > "${this_site_target_dir}/mysqldump.sql"
 
-					cp "${wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
+					cp "${this_site_wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
 
 				else
 
@@ -442,7 +440,7 @@ synthia-backup_generate_additional_paths() {
 
 	### create paths
 
-	dna-backup_generate_additional_paths_dirs
+	dna-backup_create_additional_paths_dirs
 
 	### ########################################################################
 
@@ -496,14 +494,14 @@ synthia-backup_generate_additional_paths() {
 				
 				this_site_wp_config_file_path="${this_site_path}/app/wp-config.php"
 				
-				if [ -f $wp_config_file_path ]
+				if [ -f $this_site_wp_config_file_path ]
 				then
 					this_site_type="wp"
 				elif /usr/local/bin/ee site info "${this_site_name}" | grep -q "db"
 				then
 					this_site_type="db"
 				else
-					this_site_type="simple"
+					this_site_type="basic"
 				fi
 				
 				### determine db container if applicable			
@@ -532,9 +530,9 @@ synthia-backup_generate_additional_paths() {
 
 					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
 
-					wp_db_name=`cat $wp_config_file_path | grep DB_NAME | cut -d \' -f 4`
-					wp_db_user=`cat $wp_config_file_path | grep DB_USER | cut -d \' -f 4`
-					wp_db_pass=`cat $wp_config_file_path | grep DB_PASSWORD | cut -d \' -f 4`
+					wp_db_name=`cat $this_site_wp_config_file_path | grep DB_NAME | cut -d \' -f 4`
+					wp_db_user=`cat $this_site_wp_config_file_path | grep DB_USER | cut -d \' -f 4`
+					wp_db_pass=`cat $this_site_wp_config_file_path | grep DB_PASSWORD | cut -d \' -f 4`
 
 					#mysqldump -u ${wp_db_user} -p${wp_db_pass} ${wp_db_name} > "${this_site_target_dir}/mysqldump.sql"
 					
@@ -542,9 +540,9 @@ synthia-backup_generate_additional_paths() {
 
 					# implement local-db option
 
-					cp "${wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
+					cp "${this_site_wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
 
-				elif [ "${this_site_has_db}" = "true" ]
+				elif [ "${this_site_type}" = "db" ]
 				then
 					
 					### this site is not wp but it has a db
@@ -555,7 +553,7 @@ synthia-backup_generate_additional_paths() {
 
 				else
 
-					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+					dna-echo -m "   Proceeding with ${m-}basic${n-} site backup..."
 
 				fi
 
