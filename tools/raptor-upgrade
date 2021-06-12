@@ -157,7 +157,7 @@ echo
 
 cd
 
-if [ -z "${custom_branch}" ]
+if [ -z "${custom_branch-}" ]
 then
     git clone "${git_host}/${author_name}/${project_name}"
 else
