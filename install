@@ -180,6 +180,8 @@ fi
 
 rsync -aAXx "${source_dir}/" "${install_dir}/" --include=tools*** --include=functions --exclude="*"
 
+dna-link_tools
+
 dna-echo_operation -t
 
 #### ###########################################################################
