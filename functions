@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+backup_tmp_name_data_dir#!/usr/bin/env bash
 
 ### ##########################################################################################
 
@@ -431,7 +431,7 @@ synthia-backup_generate_additional_paths() {
 
 				### determine target backup directory for this site
 
-				this_site_target_dir="${backup_tmp_dir}/data/${this_site_name}"
+				this_site_target_dir="${backup_tmp_name_data_dir}/${this_site_name}"
 				mkdir -p "${this_site_target_dir}"
 
 				### determine site type
