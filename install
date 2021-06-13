@@ -190,7 +190,7 @@ dna-echo_operation -t
 
 #### ###########################################################################
 
-if [ "${skip_full_installation-}" = "y" ]
+if [ ! "${skip_full_installation-}" = "y" ]
 then
 
     ##### echo install initialization.
