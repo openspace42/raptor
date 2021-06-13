@@ -2,21 +2,41 @@
 
 ################################################################################
 
-### Set bash environment error management
+### initialize script with standard synthia bootstrapping block.
 
-set -eu
+### ############################################################################
 
-################################################################################
-
-### Start fresh
+#### 1 | clear screen.
 
 clear
 
-################################################################################
+#### 2 | locate execution environment and perform synthia-bound operations.
 
-### Determine script execution directory and install directory.
+#### ###########################################################################
 
-exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+##### set bash environment error management.
+
+set -eu
+
+##### determine script execution directory and install directory.
+
+if [ -L "${BASH_SOURCE}" ]
+then
+
+    ## this file is being executed via a symlink.
+    ## therefore identify the parent directory of the target file.
+
+    link_target="$(readlink ${BASH_SOURCE})"
+    exec_dir="${link_target%/*}"
+
+else
+
+    ## this file is being directly executed.
+    ## therefore identify our parent directory.
+
+    exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+fi
 
 exec_dir_trim_2="$( echo ${exec_dir} | cut -f 1,2,3 -d'/')"
 exec_dir_trim_3="$( echo ${exec_dir} | cut -f 1,2,3,4 -d'/')"
@@ -37,84 +57,134 @@ else
 	fi
 fi
 
-### Source local functions file.
+##### source local functions file.
 
 . "$exec_dir_root/functions"
 
-################################################################################
-
-### Define formatting
+##### define formatting.
 
 synthia-define_formatting
 
-################################################################################
-
-### Check for root user runtime
+##### check for root user runtime.
 
 synthia-check_root
 
-################################################################################
+#### ###########################################################################
 
-### Head setup
+#### 3 | head setup.
 
 echo "${g-}${b-}Initiating setup...${x-}"
 echo
 
-################################################################################
+#### ###########################################################################
 
-### Evaluate command arguments for custom-version install
+#### 4 | download and install dna.
 
-while getopts ":d:p:" arguments
+#### ###########################################################################
+
+##### evaluate command arguments for custom-version install and project_specific
+##### command arguments.
+
+##### ##########################################################################
+
+while getopts ":b:d:p:o:u:" arguments
 do
+
     case $arguments in
-        d)	export custom_dna_version="$OPTARG"
+
+        ## synthia
+
+        b)  export custom_branch="${OPTARG}"
+            ;;
+        d)	export custom_dna_version="${OPTARG}"
 	        ;;
-		p)	export custom_project_version="$OPTARG"
+		p)	export custom_project_version="${OPTARG}"
 	        ;;
+        o)	export custom_output="${OPTARG}"
+            ;;
+
+        ## project_specific
+
+        u)  export apt_upgrade="${OPTARG}"
+            ;;
+
+        ## else
+
         \?)	echo "${r-}${b-}Invalid option | ${n-}-$OPTARG${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |.${x-}"
 	        echo
 			echo "${b-}Exiting...${x-}"
 			echo
 	        exit 1
 	        ;;
+
     esac
+
 done
+
 OPTIND=1
 
-### Download dna
-
-if [ ! -z "${custom_dna_version-}" ]
+if [ -n "${custom_branch-}" ] && [ -n "${custom_project_version-}" ]
 then
-	case $custom_dna_version in
-		b)	echo "${r-}${b-}Fetching bleeding-edge dna version as per | ${n-}-d b${r-} |.${x-}"
-			echo
-			synthia-download_dna
-			;;
-		l)	echo "${r-}${b-}Disabling dna fetch and using local version as per | ${n-}-d l${r-} |.${x-}"
-			;;
-		*)	echo "${r-}${b-}Invalid content for | ${n-}custom_dna_version${r-} | in function | ${n-}${FUNCNAME[0]}${r-} |.${x-}"
-			echo
-			echo "Exiting..."
-			echo
-			exit 1
-			;;
-	esac
+    dna-echo -e "Argument | ${n-}custom_project_version [-p]${r-} | is incompatible with argument | ${n-}custom_branch [-b]${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |."
+    dna-echo -m "When using a custom branch, the bleeding_edge version of that branch will always be fetched."
+    dna-exit
 fi
 
-### Source dna
+if [ -n "${custom_branch-}" ]
+then
+    export custom_project_version="b"
+fi
+
+##### ##########################################################################
+
+##### if not using local version of project repo...
+
+##### ##########################################################################
+
+if [ ! "${custom_project_version-null}" = "l" ]
+then
+
+	## reset the repo to HEAD before proceeding with anything.
+
+	( cd "${exec_dir_root}" && git fetch && git reset --hard origin/master > /dev/null )
+
+fi
+
+##### ##########################################################################
+
+##### download dna.
+
+synthia-download_dna
+
+#### ###########################################################################
+
+#### 5 | source dna and perform dna-bound operations.
+
+#### ###########################################################################
+
+##### source dna.
 
 synthia-source_dna
 
-################################################################################
-
-### Define variables
+##### define variables.
 
 synthia-define_vars
 
-################################################################################
+##### read conf settings.
 
-### Actually run the installer
+dna-read_conf_settings
+
+##### touch temp dir.
+
+dna-touch_tmp_project_dir
+
+#### ###########################################################################
+
+### ############################################################################
+
+### actually start script operations.
 
 dna-run_install
 
+################################################################################
 ################################################################################

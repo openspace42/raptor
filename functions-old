@@ -189,6 +189,80 @@ synthia-source_dna() {
 ######################## Insert project functions here #########################
 ################################################################################
 
+synthia-backup_old() {
+
+	### evaluate arguments.
+
+	### ########################################################################
+
+	backup_excluded_sites="${backup_excluded_sites_default} ${backup_excluded_sites_custom}"
+
+	backup_excluded_sites_array=$(echo ${backup_paths_default} | tr " " "\n")
+
+    while getopts ":lsri" arguments
+	do
+
+		if [ -d "$site" ]
+		then
+
+			this_site_name="$(echo "$site" | sed "s|${ee_www_dir}/||")"
+
+			if ! dna-check_if_array_contains $this_site_name "${backup_excluded_sites_array}"
+			then
+
+				dna-echo -m "*] Now evaluating site: | ${g}$this_site_name${n-} |:"
+
+				## determine target backup directory for this site.
+
+				this_site_target_dir="${backup_tmp_dir}/data/${this_site_name}"
+				mkdir -p "${this_site_name_data_dir}"
+
+				## determine whether this is a wp site.
+
+				this_site_wp_config_file_path="${site}/app/wp-config.php"
+
+				if [ -f "${this_site_wp_config_file_path}" ]
+				then
+
+					## this is a wp site.
+
+					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
+
+					wp_db_name="(cat ${this_site_wp_config_file_path} | grep DB_NAME | cut -d \' -f 4"
+					wp_db_user="(cat ${this_site_wp_config_file_path} | grep DB_USER | cut -d \' -f 4"
+					wp_db_pass="(cat ${this_site_wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4"
+
+					mysqldump -u "${wp_db_user}" -p"${wp_db_pass}" "${wp_db_name}" > "${this_site_target_dir}/mysqldump.sql"
+
+					cp "${this_site_wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
+
+				else
+
+					## this is not a wp site.
+
+					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
+
+				fi
+
+				## backup htdocs dir.
+
+				rsync -aAXxL "${site}/app" "${this_site_target_dir}"
+
+				dna-echo -s "   Finished backup for | ${n-}${this_site_name}${g-} |."
+
+			else
+
+			dna-echo -m "*] Site | ${r-}${this_site_name}${n-} | is on the exclusion list."
+			dna-echo -e "Skipping..."
+
+		fi
+
+	fi
+
+done
+
+}
+
 backup_locally_loop() {
 
 	### Copy conf dir to $tmp_backup_dir

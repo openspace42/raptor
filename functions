@@ -1,72 +1,87 @@
 #!/usr/bin/env bash
 
-### ############################################################################
+### ##########################################################################################
 
-### openspace42 synthia bootstrap framework.
-### [https://github.com/openspace42/synthia].
-### v0.4.0.
+### openspace42 synthia bootstrap framework
+### [https://github.com/openspace42/synthia]
+### v0.4.0
 
-dna_version="v0.3.14"
+### ##########################################################################################
 
-### ############################################################################
+### 1 | synthia variables
 
-### 1 | synthia global functions
+### always customize this section with project specific variables
 
-### ############################################################################
+### ##########################################################################################
+
+synthia-source_dna_version() {
+	
+	### define dna framework version
+	### specify the latest version tested and known to work with this project
+
+	dna_version="v0.3.14"
+
+}
 
 synthia-define_vars() {
 
 	### define default variables.
 
-	### 1 | synthia global variables.
+	### 1 | synthia global variables
+	
+	### always customize this section
 
-	### ########################################################################
+	### ######################################################################################
 
 	export proj_name="raptor" ## legacy fix
 	export project_name="raptor"
 	export author_name="openspace42"
 	export git_host="https://github.com"
 
-	### ########################################################################
+	### ######################################################################################
 
-	### 2 | synthia project_specific variales.
+	### 2 | synthia project-specific variables.
+	
+	### customize this section if you'd like to change the defaults
 
-	### ########################################################################
+	### ######################################################################################
 
-	#### backup / restore.
+	### backup / restore.
 
-	#### #######################################################################
+	### ######################################################################################
 
-	#### set this to 'disabled' to disable local backups and only upload to S3
-	#### [useful if your project handles large amounts of data for example].
-	#### S3 must be set up by the user or else backups will not work at all.
-	#### this is only the default, which will be suggested to the user during
-	#### install, and it can be overridden.
+	### set this to 'disabled' to disable local backups and only upload to S3
+	### [useful if your project handles large amounts of data for example].
+	### S3 must be set up by the user or else backups will not work at all.
+	### this is only the default, which will be suggested to the user during
+	### install, and it can be overridden.
 
 	export backup_locally_mode_default="enabled"
 
-	#### set this to 'disabled' to disable restore test during S3 backup.
-	#### this is only the default, which will be suggested to the user during
-	#### install, and it can be overridden.
+	### set this to 'disabled' to disable restore test during S3 backup.
+	### this is only the default, which will be suggested to the user during
+	### install, and it can be overridden.
 
 	export backup_test_restore_mode_default="enabled"
 
-	#### set this to 'n' if your project stores no data on end users' machines
-	#### that could go lost during a re-install or update.
+	### set this to 'n' if your project stores no data on end users' machines
+	### that could go lost during a re-install or update.
 
 	export backup_prompt_during_install="n"
 
-	#### #######################################################################
-
-	### ########################################################################
+	### ######################################################################################
 
 	### 3 | define dna variables.
+	
+	### do not alter this section
 
 	dna-define_vars
 
-	### 4 | define any additional custom variables.
+	### 4 | define any additional custom variables
+	
+	### edit this section if for any project-specific additional custom variables
 
-	### ########################################################################
+	### ######################################################################################
 
 	export ee_www_dir="/opt/easyengine/sites"
 	export ssh_config_file="/etc/ssh/sshd_config"
@@ -77,22 +92,26 @@ synthia-define_vars() {
 	### ########################################################################
 
 	### 5 | define final variables that depend on custom ones.
+	
+	### edit this when needed
 
-	### ########################################################################
+	### ######################################################################################
 
-	#### set default backup paths.
-	#### [absolute, mark whether existing or generated].
+	### set default backup paths.
+	### [absolute, mark whether existing or generated].
 
 	declare -gA backup_paths_default_array=(
 	)
 
-	### ########################################################################
+	### ######################################################################################
 
 }
 
-#### bootstrap functions.
+### 2 | synthia bootstrap functions
 
-#### ###########################################################################
+### never alter this section
+
+### ##########################################################################################
 
 synthia-define_formatting() {
 
@@ -203,6 +222,8 @@ synthia-download_dna() {
 		        git checkout "tags/${dna_latest_vers_final}"
 
 			else
+				
+				synthia_source_dna_version
 
 				export dna_selected_vers="${dna_version}"
 
@@ -230,15 +251,24 @@ synthia-source_dna() {
 
 }
 
-#### ###########################################################################
+### ##########################################################################################
 
-#### backup_restore_functions
+### ##########################################################################################
+
+### 3 | synthia project-customizable functions
+
+### customize these functions according to project-specific needs
+### do not add or remove functions here
+
+### backup / restore.
+
+### ##########################################################################################
 
 synthia-backup() {
 
 	### evaluate arguments.
 
-	### ########################################################################
+	### ######################################################################################
 
     while getopts ":lsri" arguments
 		do
@@ -273,7 +303,7 @@ synthia-backup() {
 
 	fi
 
-	### ########################################################################
+	### ######################################################################################
 
 	dna-backup_check_set_lockfile
 
@@ -364,18 +394,6 @@ synthia-backup_old() {
 done
 
 }
-
-#### ###########################################################################
-
-### ############################################################################
-
-### 2 | synthia project-specific functions.
-
-### ############################################################################
-
-#### backup / restore.
-
-#### ###########################################################################
 
 synthia-backup_pre_operations() {
 
