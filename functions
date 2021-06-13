@@ -1172,7 +1172,7 @@ new_user="${1}"
 
 create_sftp_user() {
 	
-	while getopts ":u" arguments
+	while getopts ":u:" arguments
 	do
 	    case $arguments in
 	        e)	export new_sftp_user="${OPTARG}"
@@ -1184,7 +1184,7 @@ create_sftp_user() {
 	done
 	OPTIND=1
 
-	if [ -z "${sftp_user-}" ]
+	if [ -z "${new_sftp_user-}" ]
 	then
 	    dna-echo -e "Argument [new_sftp_user | ${n-}-u${r-} |] must be supplied for function | ${n-}${FUNCNAME[0]}${r-} |."
 	    dna-exit
@@ -1192,14 +1192,14 @@ create_sftp_user() {
 	
 	dna-echo -m "Creating SFTP user | ${c-}${new_sftp_user}${n-} |..."
 
-	adduser --gecos "" "${new_user}"
+	adduser --gecos "" "${new_sftp_user}"
 	echo
-	adduser "${new_user}" "${sftp_group}"
+	adduser "${new_sftp_user}" "${sftp_group}"
 	echo
-	chown root:root "/home/${new_user}/"
+	chown root:root "/home/${new_sftp_user}/"
 
-	mkdir "/home/${new_user}/www/"
-	chown "${new_user}":"${new_user}" "/home/${new_user}/www/"
+	mkdir "/home/${new_sftp_user}/www/"
+	chown "${new_sftp_user}":"${new_sftp_user}" "/home/${new_sftp_user}/www/"
 
 	dna-echo -m "Finished creating SFTP user."
 
