@@ -384,7 +384,7 @@ synthia-backup_generate_additional_paths() {
 
 	### create paths
 
-	dna-backup_generate_additional_paths_dirs
+	dna-backup_create_additional_paths_dirs
 
 	### ######################################################################################
 
