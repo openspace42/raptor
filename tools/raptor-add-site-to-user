@@ -1,22 +1,42 @@
 #!/usr/bin/env bash
 
-################################################################################
+### ############################################################################
 
-### Set bash environment error management
+### initialize script with standard synthia bootstrapping block.
 
-set -eu
+### ############################################################################
 
-################################################################################
-
-### Add padding to output
+#### 1 | add padding to output / clear screen.
 
 echo
 
-################################################################################
+#### 2 | locate execution environment and perform synthia-bound operations.
 
-### Determine script execution directory and install directory.
+#### ###########################################################################
 
-exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+##### set bash environment error management.
+
+set -eu
+
+##### determine script execution directory and install directory.
+
+if [ -L "${BASH_SOURCE}" ]
+then
+
+    ###### this file is being executed via a symlink.
+    ###### therefore identify the parent directory of the target file.
+
+    link_target="$(readlink ${BASH_SOURCE})"
+    exec_dir="${link_target%/*}"
+
+else
+
+    ###### this file is being directly executed.
+    ###### therefore identify our parent directory.
+
+    exec_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+fi
 
 exec_dir_trim_2="$( echo ${exec_dir} | cut -f 1,2,3 -d'/')"
 exec_dir_trim_3="$( echo ${exec_dir} | cut -f 1,2,3,4 -d'/')"
@@ -37,66 +57,58 @@ else
 	fi
 fi
 
-### Source local functions file.
+##### source local functions file.
 
 . "$exec_dir_root/functions"
 
-################################################################################
-
-### Define formatting
+##### define formatting.
 
 synthia-define_formatting
 
-################################################################################
-
-### Check for root user runtime
+##### check for root user runtime.
 
 synthia-check_root
 
-################################################################################
+#### ###########################################################################
 
-### Source dna
+#### 3 | source dna and perform dna-bound operations.
+
+#### ###########################################################################
+
+##### source dna.
 
 synthia-source_dna
 
-################################################################################
-
-### Define variables
+##### define variables.
 
 synthia-define_vars
 
-################################################################################
-
-### Read conf settings
+##### read conf settings.
 
 dna-read_conf_settings
 
-################################################################################
+##### touch temp dir.
 
-### Head script
+dna-touch_tmp_project_dir
+
+#### ###########################################################################
+
+#### 4 | head/log script.
 
 dna-head_script
 
-################################################################################
+### ############################################################################
 
-dna-echo -m "Now adding site access to SFTP user..."
+### evaluate arguments.
 
-choose_local_user
+### ############################################################################
 
-choose_local_site
+### ############################################################################
 
-dna-echo -m "Adding access to site | ${c-}$sel_site${n-} | to SFTP user | ${c-}$sel_user${n-} |..."
+### actually start script operations.
 
-sudo -u "${sel_user}" mkdir -p "/home/${sel_user}/www/${sel_site_name}"
+### ############################################################################
 
-if ! grep -q "/home/${sel_user}/www/${sel_site_name}" "/etc/fstab"
-then
-    dna-echo -m "Adding line to fstab..."
-    echo "bindfs#${sel_site} /home/${sel_user}/www/${sel_site_name} fuse force-user=${sel_user},force-group=${sel_user},create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> "/etc/fstab"
-else
-    dna-echo -m "Site already present in fstab."
-fi
+add_site_to_user
 
-mount -a &> /dev/null
-
-dna-echo -m "Finished site access to SFTP user."
+### ############################################################################

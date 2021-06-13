@@ -321,88 +321,14 @@ synthia-backup() {
 
 }
 
-synthia-backup_old() {
-
-	### evaluate arguments.
-
-	### ########################################################################
-
-	backup_excluded_sites="${backup_excluded_sites_default} ${backup_excluded_sites_custom}"
-
-	backup_excluded_sites_array=$(echo ${backup_paths_default} | tr " " "\n")
-
-    while getopts ":lsri" arguments
-	do
-
-		if [ -d "$site" ]
-		then
-
-			this_site_name="$(echo "$site" | sed "s|${ee_www_dir}/||")"
-
-			if ! dna-check_if_array_contains $this_site_name "${backup_excluded_sites_array}"
-			then
-
-				dna-echo -m "*] Now evaluating site: | ${g}$this_site_name${n-} |:"
-
-				## determine target backup directory for this site.
-
-				this_site_target_dir="${backup_tmp_dir}/data/${this_site_name}"
-				mkdir -p "${this_site_name_data_dir}"
-
-				## determine whether this is a wp site.
-
-				this_site_wp_config_file_path="${site}/app/wp-config.php"
-
-				if [ -f "${this_site_wp_config_file_path}" ]
-				then
-
-					## this is a wp site.
-
-					dna-echo -m "   Proceeding with ${l-}wordpress${n-} site backup..."
-
-					wp_db_name="(cat ${this_site_wp_config_file_path} | grep DB_NAME | cut -d \' -f 4"
-					wp_db_user="(cat ${this_site_wp_config_file_path} | grep DB_USER | cut -d \' -f 4"
-					wp_db_pass="(cat ${this_site_wp_config_file_path} | grep DB_PASSWORD | cut -d \' -f 4"
-
-					mysqldump -u "${wp_db_user}" -p"${wp_db_pass}" "${wp_db_name}" > "${this_site_target_dir}/mysqldump.sql"
-
-					cp "${this_site_wp_config_file_path}" "${this_site_target_dir}/wp-config.php"
-
-				else
-
-					## this is not a wp site.
-
-					dna-echo -m "   Proceeding with ${m-}NON wordpress${n-} site backup..."
-
-				fi
-
-				## backup htdocs dir.
-
-				rsync -aAXxL "${site}/app" "${this_site_target_dir}"
-
-				dna-echo -s "   Finished backup for | ${n-}${this_site_name}${g-} |."
-
-			else
-
-			dna-echo -m "*] Site | ${r-}${this_site_name}${n-} | is on the exclusion list."
-			dna-echo -e "Skipping..."
-
-		fi
-
-	fi
-
-done
-
-}
-
 synthia-backup_pre_operations() {
 
 	### perform pre-backup operations.
 
 	dna-echo_operation -h "performing pre-backup operations"
 
-	### ########################################################################
-	### ########################################################################
+	### ######################################################################################
+	### ######################################################################################
 
 	dna-echo_operation -t
 
@@ -414,8 +340,8 @@ synthia-backup_post_operations() {
 
 	### perform post-backup operations.
 
-	### ########################################################################
-	### ########################################################################
+	### ######################################################################################
+	### ######################################################################################
 
 	dna-echo_operation -t
 
@@ -423,27 +349,27 @@ synthia-backup_post_operations() {
 
 synthia-calculate_backup_size() {
 
-	### ########################################################################
+	### ######################################################################################
 
 	### calculate backup_paths size.
 
 	dna-calculate_backup_paths_size
 
-	### ########################################################################
+	### ######################################################################################
 
 	### calculate any additional custom size.
 
-	### ########################################################################
+	### ######################################################################################
 
 	
 
-	### ########################################################################
+	### ######################################################################################
 
 	### add it up.
 
 	backup_total_size_estimate="$((${backup_paths_size_estimate} + 0))"
 
-	### ########################################################################
+	### ######################################################################################
 
 }
 
@@ -454,17 +380,17 @@ synthia-backup_generate_additional_paths() {
 
 	dna-echo_operation -h "backing up any additional custom backup_path"
 
-	### ########################################################################
+	### ######################################################################################
 
 	### create paths
 
-	dna-backup_create_additional_paths_dirs
+	dna-backup_generate_additional_paths_dirs
 
-	### ########################################################################
+	### ######################################################################################
 
 	### perform backups of every item individually
 
-	### ########################################################################
+	### ######################################################################################
 
 	### add hardcoded sites to exclude to the user-specified ones
 
@@ -1087,6 +1013,14 @@ restore_loop() {
 
 }
 
+### ##########################################################################################
+
+### 4 | synthia project-specific functions
+
+### add any function here that is needed for this project
+
+### ##########################################################################################
+
 choose_local_user() {
 
 	currusers="$(cat /etc/passwd | cut -d: -f 1,3,6 | grep "[1-9][0-9][0-9][0-9]" | grep "/home" | cut -d: -f1)"
@@ -1229,6 +1163,71 @@ choose_local_site() {
 	done
 
 	sel_site_name=${sel_site#/opt/easyengine/sites/}
+
+}
+
+new_user="${1}"
+
+################################################################################
+
+create_sftp_user() {
+	
+	while getopts ":u" arguments
+	do
+	    case $arguments in
+	        e)	export new_sftp_user="${OPTARG}"
+	            ;;
+	        \?)	dna-echo -e "Invalid option | ${n-}-${OPTARG}${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |."
+	            dna-exit
+	            ;;
+	    esac
+	done
+	OPTIND=1
+
+	if [ -z "${sftp_user-}" ]
+	then
+	    dna-echo -e "Argument [new_sftp_user | ${n-}-u${r-} |] must be supplied for function | ${n-}${FUNCNAME[0]}${r-} |."
+	    dna-exit
+	fi
+	
+	dna-echo -m "Creating SFTP user | ${c-}${new_sftp_user}${n-} |..."
+
+	adduser --gecos "" "${new_user}"
+	echo
+	adduser "${new_user}" "${sftp_group}"
+	echo
+	chown root:root "/home/${new_user}/"
+
+	mkdir "/home/${new_user}/www/"
+	chown "${new_user}":"${new_user}" "/home/${new_user}/www/"
+
+	dna-echo -m "Finished creating SFTP user."
+
+}
+
+add_site_to_user() {
+
+	dna-echo -m "Now adding site access to SFTP user..."
+
+	choose_local_user
+
+	choose_local_site
+
+	dna-echo -m "Adding access to site | ${c-}$sel_site${n-} | to SFTP user | ${c-}$sel_user${n-} |..."
+
+	sudo -u "${sel_user}" mkdir -p "/home/${sel_user}/www/${sel_site_name}"
+
+	if ! grep -q "/home/${sel_user}/www/${sel_site_name}" "/etc/fstab"
+	then
+	    dna-echo -m "Adding line to fstab..."
+	    echo "bindfs#${sel_site} /home/${sel_user}/www/${sel_site_name} fuse force-user=${sel_user},force-group=${sel_user},create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> "/etc/fstab"
+	else
+	    dna-echo -m "Site already present in fstab."
+	fi
+
+	mount -a &> /dev/null
+
+	dna-echo -m "Finished site access to SFTP user."
 
 }
 

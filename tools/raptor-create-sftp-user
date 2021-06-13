@@ -102,31 +102,31 @@ dna-head_script
 ### evaluate arguments.
 
 ### ############################################################################
+
+while getopts ":u" arguments
+do
+    case $arguments in
+        e)	export new_sftp_user="${OPTARG}"
+            ;;
+        \?)	dna-echo -e "Invalid option | ${n-}-${OPTARG}${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |."
+            dna-exit
+            ;;
+    esac
+done
+OPTIND=1
+
+if [ -z "${new_sftp_user-}" ]
+then
+    dna-echo -e "Argument [new_sftp_user | ${n-}-u${r-} |] must be supplied for function | ${n-}${FUNCNAME[0]}${r-} |."
+    dna-exit
+fi
+
 ### ############################################################################
 
 ### actually start script operations.
 
 ### ############################################################################
 
-if [ $# -eq 0 ]
-then
-        dna-echo -e "No argument supplied for function | ${FUNCNAME[0]} |."
-        dna-exit
-fi
+create_sftp_user -u "${new_sftp_user}"
 
-new_user="${1}"
-
-################################################################################
-
-dna-echo -m "Creating SFTP user | ${c-}${new_user}${n-} |..."
-
-adduser --gecos "" "${new_user}"
-echo
-adduser "${new_user}" "${sftp_group}"
-echo
-chown root:root "/home/${new_user}/"
-
-mkdir "/home/${new_user}/www/"
-chown "${new_user}":"${new_user}" "/home/${new_user}/www/"
-
-dna-echo -m "Finished creating SFTP user."
+### ############################################################################
