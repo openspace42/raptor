@@ -95,53 +95,14 @@ dna-touch_tmp_project_dir
 
 #### 4 | head/log script.
 
-dna-log_script -h
+dna-log_script
 
 ### ############################################################################
 
-### evaluate arguments.
+### actually start script operations.
 
-### ############################################################################
+dna-get_project_version
 
-if [ $# -eq 0 ]
-then
-    dna-echo -e "No argument supplied for function | ${n-}${FUNCNAME[0]}${r-} |."
-    dna-echo -m "This script must not be run directly."
-    dna-echo -m "It is only meant to be executed by other functions remotely."
-    dna-exit
-fi
-
-while getopts ":c:" arguments
-do
-    case $arguments in
-        c)	commands="${OPTARG}"
-	        ;;
-        \?)	dna-echo -e "Invalid option | ${n-}-$OPTARG${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |."
-	        dna-exit
-	        ;;
-    esac
-done
-OPTIND=1
-
-if [ -z "${commands-}" ]
-then
-    dna-echo -e "Commands [option | ${n-}-c${r-} |] must be supplied for function | ${n-}${FUNCNAME[0]}${r-} |."
-    dna-exit
-fi
-
-### ############################################################################
-
-### execute commands.
-
-echo "$commands" |
-while IFS= read -r line
-do
-        if [ ! -z "${line-}" ]
-        then
-                line="$(echo $line | xargs)"
-                ${line}
-        fi
-done
-IFS=$' \t\n'
+dna-get_dna_version
 
 ### ############################################################################
