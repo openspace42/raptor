@@ -103,10 +103,10 @@ dna-head_script
 
 ### ############################################################################
 
-while getopts ":u" arguments
+while getopts ":u:" arguments
 do
     case $arguments in
-        e)	export new_sftp_user="${OPTARG}"
+        u)	export new_sftp_user="${OPTARG}"
             ;;
         \?)	dna-echo -e "Invalid option | ${n-}-${OPTARG}${r-} | for function | ${n-}${FUNCNAME[0]}${r-} |."
             dna-exit
