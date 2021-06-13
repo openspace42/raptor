@@ -190,13 +190,18 @@ dna-echo_operation -t
 
 #### ###########################################################################
 
-##### echo install initialization.
+if [ -z "${skip_full_installation-}" ]
+then
 
-dna-echo -m "Initiating install..."
+    ##### echo install initialization.
 
-##### perform installation.
+    dna-echo -m "Initiating install..."
 
-synthia-perform_installation
+    ##### perform installation.
+
+    synthia-perform_installation
+    
+fi
 
 #### ###########################################################################
 
