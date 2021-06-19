@@ -1,4 +1,4 @@
-backup_tmp_name_data_dir#!/usr/bin/env bash
+#!/usr/bin/env bash
 
 ### ##########################################################################################
 
@@ -19,7 +19,7 @@ synthia-source_dna_version() {
 	### define dna framework version
 	### specify the latest version tested and known to work with this project
 
-	dna_version="v0.3.14"
+	dna_version="v0.4.0-beta.1"
 
 }
 
@@ -361,13 +361,13 @@ synthia-calculate_backup_size() {
 
 	### ######################################################################################
 
-	
+	ee_backup_path_size="$(du -sm ${ee_www_dir} | cut -f1)"
 
 	### ######################################################################################
 
 	### add it up.
 
-	backup_total_size_estimate="$((${backup_paths_size_estimate} + 0))"
+	backup_total_size_estimate="$((${backup_paths_size_estimate} + ${ee_backup_path_size}))"
 
 	### ######################################################################################
 
