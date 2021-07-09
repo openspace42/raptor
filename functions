@@ -1194,6 +1194,8 @@ create_sftp_user() {
 	echo
 	adduser "${new_sftp_user}" "${sftp_group}"
 	echo
+	usermod -s /bin/false "${new_sftp_user}"
+	echo
 	chown root:root "/home/${new_sftp_user}/"
 
 	mkdir "/home/${new_sftp_user}/www/"
