@@ -1162,7 +1162,7 @@ choose_local_site() {
 
 	done
 
-	sel_site_name=${sel_site#/opt/easyengine/sites/}
+	sel_site_name="$(echo "$sel_site" | sed "s|${ee_www_dir}/||")"
 
 }
 
@@ -1213,14 +1213,20 @@ add_site_to_user() {
 
 	choose_local_site
 
-	dna-echo -m "Adding access to site | ${c-}$sel_site${n-} | to SFTP user | ${c-}$sel_user${n-} |..."
+	sel_site_docker_htdocs_volume_substring="$(echo "$sel_site_name" | tr -cd '[:alnum:]')"
+	
+	sel_site_docker_htdocs_volume_name="${sel_site_docker_htdocs_volume_substring}_htdocs"
+
+	sel_site_docker_htdocs_volume_path="/var/lib/docker/volumes/${sel_site_docker_htdocs_volume_name}/_data"
+
+	dna-echo -m "Adding access to site | ${c-}$sel_site_name${n-} | to SFTP user | ${c-}$sel_user${n-} |..."
 
 	sudo -u "${sel_user}" mkdir -p "/home/${sel_user}/www/${sel_site_name}"
 
 	if ! grep -q "/home/${sel_user}/www/${sel_site_name}" "/etc/fstab"
 	then
 	    dna-echo -m "Adding line to fstab..."
-	    echo "bindfs#${sel_site} /home/${sel_user}/www/${sel_site_name} fuse force-user=${sel_user},force-group=${sel_user},create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> "/etc/fstab"
+	    echo "bindfs#${sel_site_docker_htdocs_volume_path} /home/${sel_user}/www/${sel_site_name} fuse force-user=${sel_user},force-group=${sel_user},create-for-user=www-data,create-for-group=www-data,create-with-perms=0770,chgrp-ignore,chown-ignore,chmod-ignore 0 0" >> "/etc/fstab"
 	else
 	    dna-echo -m "Site already present in fstab."
 	fi
