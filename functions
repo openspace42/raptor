@@ -223,7 +223,7 @@ synthia-download_dna() {
 
 			else
 				
-				synthia_source_dna_version
+				synthia-source_dna_version
 
 				export dna_selected_vers="${dna_version}"
 
